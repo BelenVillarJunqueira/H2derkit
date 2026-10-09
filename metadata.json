@@ -1,0 +1,6 @@
+{
+  "name": "H2derm - Tienda Oficial & Profesional Kit Rostro",
+  "description": "Tienda oficial H2derm Profesional Kit. Tratamiento dermocosmético intensivo para piel seca, manchas, hidratación y luminosidad con pasarelas de pago y seguimiento en vivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

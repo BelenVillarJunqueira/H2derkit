@@ -245,9 +245,9 @@ export const DEFAULT_CONTENT: StoreContent = {
   shippingEstimatedDays: '24 a 48 horas en todo el país',
   freeShippingThresholdText: 'Envío 100% Bonificado Sin Cargo',
 
-  whatsappNumber: '+54 9 11 4920-8842',
-  supportEmail: 'contacto@h2derm.shop',
-  supportPhone: '0800-444-H2DERM (4233)',
+  whatsappNumber: '+54 9 3515056742',
+  supportEmail: '...',
+  supportPhone: '...',
   shippingCarriersText: 'Andreani · Correo Argentino · Moto Express en el día'
 };
 
@@ -375,12 +375,12 @@ export const DEFAULT_GATEWAYS: PaymentGatewaysSettings = {
   },
   transferencia: {
     enabled: true,
-    bankName: 'Banco Santander / Brubank',
+    bankName: 'Banco Galicia',
     accountHolder: 'H2DERM DERMOCOSMETICA S.R.L.',
-    cbu: '0720194888000039201948',
-    cvu: '0000003100092837461920',
-    alias: 'H2DERM.OFICIAL.PAGOS',
-    cuit: '30-71649201-9',
+    cbu: '0070327530004092450465',
+    cvu: '0000003100108191210230',
+    alias: 'rbvillar3.gal',
+    cuit: '23-37066549-4',
     extraDiscountPercent: 10,
     instructions: 'Una vez hecha la transferencia bancaria o por Mercado Pago a nuestro Alias, adjunta tu comprobante o envíalo por WhatsApp con tu número de pedido.'
   }

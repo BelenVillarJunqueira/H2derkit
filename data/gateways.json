@@ -15,10 +15,10 @@
   },
   "transferencia": {
     "enabled": true,
-    "bankName": "Banco Galiciar / Brubank",
+    "bankName": "Banco Galiciar",
     "accountHolder": "Belen Villar junqueira",
-    "cbu": "0720194888000039201948",
-    "cvu": "0070327530004092450465",
+    "cbu": "0070327530004092450465",
+    "cvu": "0000003100108191210230",
     "alias": "RBVILLAR3.GAL",
     "cuit": "23/37066549/4",
     "extraDiscountPercent": 10,

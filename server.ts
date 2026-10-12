@@ -2,12 +2,21 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { connectMongoDB, isMongoConnected, StoreConfigModel, OrderModel } from './src/db/mongo';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+
+// Connect to MongoDB if MONGODB_URI is provided
+connectMongoDB().catch(err => {
+  console.warn('MongoDB connection notice:', err.message);
+});
 
 // Ensure directories exist
 const dataDir = path.resolve(__dirname, 'data');
@@ -80,20 +89,19 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    service: 'H2derm Official Store API'
+    service: 'H2derm Official Store API',
+    mongoConnected: isMongoConnected()
   });
 });
 
-// Upload endpoint: accepts raw base64 and returns permanent URL (self-contained base64 preserves universal rendering)
+// Upload endpoint
 app.post('/api/upload', (req, res) => {
   try {
     const { image, prefix } = req.body;
     if (!image) {
       return res.status(400).json({ error: 'Falta la imagen' });
     }
-    // Also backup to disk if possible
     const fileUrl = saveBase64File(image, prefix || 'upload');
-    // Return the image data URL directly to guarantee 100% universal rendering on Render and all devices without broken links
     res.json({ success: true, url: image, fileUrl });
   } catch (err: any) {
     console.error('Upload error:', err);
@@ -105,7 +113,18 @@ app.post('/api/upload', (req, res) => {
 const contentFile = path.join(dataDir, 'content.json');
 const defaultContentFile = path.resolve(__dirname, 'src', 'data', 'defaultContent.json');
 
-app.get('/api/store/content', (_req, res) => {
+app.get('/api/store/content', async (_req, res) => {
+  try {
+    if (isMongoConnected()) {
+      const doc = await StoreConfigModel.findOne({ key: 'content' });
+      if (doc && doc.data) {
+        return res.json(doc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Mongo read content error:', err);
+  }
+
   if (fs.existsSync(contentFile)) {
     const content = readJsonFile(contentFile, null);
     if (content) return res.json(content);
@@ -117,12 +136,21 @@ app.get('/api/store/content', (_req, res) => {
   res.status(404).json({ error: 'No custom content saved yet' });
 });
 
-app.post('/api/store/content', (req, res) => {
+app.post('/api/store/content', async (req, res) => {
   try {
     const content = req.body;
     writeJsonFile(contentFile, content);
     writeJsonFile(defaultContentFile, content);
-    res.json({ success: true, content });
+
+    if (isMongoConnected()) {
+      await StoreConfigModel.findOneAndUpdate(
+        { key: 'content' },
+        { key: 'content', data: content, updatedAt: new Date() },
+        { upsert: true }
+      );
+    }
+
+    res.json({ success: true, content, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving content:', err);
     res.status(500).json({ error: 'Error guardando contenido', details: err.message });
@@ -133,7 +161,18 @@ app.post('/api/store/content', (req, res) => {
 const mediaFile = path.join(dataDir, 'media.json');
 const defaultMediaFile = path.resolve(__dirname, 'src', 'data', 'defaultMedia.json');
 
-app.get('/api/store/media', (_req, res) => {
+app.get('/api/store/media', async (_req, res) => {
+  try {
+    if (isMongoConnected()) {
+      const doc = await StoreConfigModel.findOne({ key: 'media' });
+      if (doc && doc.data && Array.isArray(doc.data) && doc.data.length > 0) {
+        return res.json(doc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Mongo read media error:', err);
+  }
+
   if (fs.existsSync(mediaFile)) {
     const media = readJsonFile(mediaFile, null);
     if (media) return res.json(media);
@@ -145,20 +184,29 @@ app.get('/api/store/media', (_req, res) => {
   res.status(404).json({ error: 'No custom media saved yet' });
 });
 
-app.post('/api/store/media', (req, res) => {
+app.post('/api/store/media', async (req, res) => {
   try {
     const media = req.body;
     writeJsonFile(mediaFile, media);
     writeJsonFile(defaultMediaFile, media);
-    res.json({ success: true, media });
+
+    if (isMongoConnected()) {
+      await StoreConfigModel.findOneAndUpdate(
+        { key: 'media' },
+        { key: 'media', data: media, updatedAt: new Date() },
+        { upsert: true }
+      );
+    }
+
+    res.json({ success: true, media, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving media:', err);
     res.status(500).json({ error: 'Error guardando media', details: err.message });
   }
 });
 
-// Synchronize all defaults permanently for Render deploy
-app.post('/api/store/save-defaults', (req, res) => {
+// Synchronize all defaults permanently for Render deploy and MongoDB
+app.post('/api/store/save-defaults', async (req, res) => {
   try {
     const { content, media, gateways } = req.body;
     if (content) {
@@ -172,7 +220,38 @@ app.post('/api/store/save-defaults', (req, res) => {
     if (gateways) {
       writeJsonFile(gatewaysFile, gateways);
     }
-    res.json({ success: true, message: 'Defaults saved to project files and data store' });
+
+    if (isMongoConnected()) {
+      if (content) {
+        await StoreConfigModel.findOneAndUpdate(
+          { key: 'content' },
+          { key: 'content', data: content, updatedAt: new Date() },
+          { upsert: true }
+        );
+      }
+      if (media) {
+        await StoreConfigModel.findOneAndUpdate(
+          { key: 'media' },
+          { key: 'media', data: media, updatedAt: new Date() },
+          { upsert: true }
+        );
+      }
+      if (gateways) {
+        await StoreConfigModel.findOneAndUpdate(
+          { key: 'gateways' },
+          { key: 'gateways', data: gateways, updatedAt: new Date() },
+          { upsert: true }
+        );
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: isMongoConnected() 
+        ? '¡Guardado con éxito en MongoDB Atlas y en archivos del servidor!' 
+        : '¡Guardado con éxito en los archivos del servidor!',
+      mongo: isMongoConnected()
+    });
   } catch (err: any) {
     console.error('Error saving defaults:', err);
     res.status(500).json({ error: 'Error al sincronizar datos', details: err.message });
@@ -181,7 +260,18 @@ app.post('/api/store/save-defaults', (req, res) => {
 
 // Payment Gateways settings endpoints
 const gatewaysFile = path.join(dataDir, 'gateways.json');
-app.get('/api/store/gateways', (_req, res) => {
+app.get('/api/store/gateways', async (_req, res) => {
+  try {
+    if (isMongoConnected()) {
+      const doc = await StoreConfigModel.findOne({ key: 'gateways' });
+      if (doc && doc.data) {
+        return res.json(doc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Mongo read gateways error:', err);
+  }
+
   if (fs.existsSync(gatewaysFile)) {
     const gateways = readJsonFile(gatewaysFile, null);
     if (gateways) return res.json(gateways);
@@ -189,10 +279,17 @@ app.get('/api/store/gateways', (_req, res) => {
   res.status(404).json({ error: 'No custom gateways saved yet' });
 });
 
-app.post('/api/store/gateways', (req, res) => {
+app.post('/api/store/gateways', async (req, res) => {
   try {
     writeJsonFile(gatewaysFile, req.body);
-    res.json({ success: true, gateways: req.body });
+    if (isMongoConnected()) {
+      await StoreConfigModel.findOneAndUpdate(
+        { key: 'gateways' },
+        { key: 'gateways', data: req.body, updatedAt: new Date() },
+        { upsert: true }
+      );
+    }
+    res.json({ success: true, gateways: req.body, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving gateways:', err);
     res.status(500).json({ error: 'Error guardando pasarelas', details: err.message });
@@ -201,12 +298,23 @@ app.post('/api/store/gateways', (req, res) => {
 
 // Orders endpoints
 const ordersFile = path.join(dataDir, 'orders.json');
-app.get('/api/store/orders', (_req, res) => {
+app.get('/api/store/orders', async (_req, res) => {
+  try {
+    if (isMongoConnected()) {
+      const mongoOrders = await OrderModel.find().sort({ createdAt: -1 });
+      if (mongoOrders && mongoOrders.length > 0) {
+        return res.json(mongoOrders);
+      }
+    }
+  } catch (err) {
+    console.error('Mongo read orders error:', err);
+  }
+
   const orders = readJsonFile(ordersFile, []);
   res.json(orders);
 });
 
-app.post('/api/store/orders', (req, res) => {
+app.post('/api/store/orders', async (req, res) => {
   try {
     const orders = readJsonFile<any[]>(ordersFile, []);
     const newOrder = req.body;
@@ -217,7 +325,16 @@ app.post('/api/store/orders', (req, res) => {
       orders.unshift({ ...newOrder, createdAt: newOrder.createdAt || new Date().toISOString() });
     }
     writeJsonFile(ordersFile, orders);
-    res.json({ success: true, order: newOrder });
+
+    if (isMongoConnected()) {
+      await OrderModel.findOneAndUpdate(
+        { id: newOrder.id },
+        { ...newOrder, updatedAt: new Date() },
+        { upsert: true }
+      );
+    }
+
+    res.json({ success: true, order: newOrder, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving order:', err);
     res.status(500).json({ error: 'Error guardando pedido', details: err.message });
@@ -226,7 +343,18 @@ app.post('/api/store/orders', (req, res) => {
 
 // Reviews endpoints
 const reviewsFile = path.join(dataDir, 'reviews.json');
-app.get('/api/store/reviews', (_req, res) => {
+app.get('/api/store/reviews', async (_req, res) => {
+  try {
+    if (isMongoConnected()) {
+      const doc = await StoreConfigModel.findOne({ key: 'reviews' });
+      if (doc && doc.data) {
+        return res.json(doc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Mongo read reviews error:', err);
+  }
+
   if (fs.existsSync(reviewsFile)) {
     const reviews = readJsonFile(reviewsFile, null);
     if (reviews) return res.json(reviews);
@@ -234,10 +362,17 @@ app.get('/api/store/reviews', (_req, res) => {
   res.status(404).json({ error: 'No custom reviews saved yet' });
 });
 
-app.post('/api/store/reviews', (req, res) => {
+app.post('/api/store/reviews', async (req, res) => {
   try {
     writeJsonFile(reviewsFile, req.body);
-    res.json({ success: true, reviews: req.body });
+    if (isMongoConnected()) {
+      await StoreConfigModel.findOneAndUpdate(
+        { key: 'reviews' },
+        { key: 'reviews', data: req.body, updatedAt: new Date() },
+        { upsert: true }
+      );
+    }
+    res.json({ success: true, reviews: req.body, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving reviews:', err);
     res.status(500).json({ error: 'Error guardando reseñas', details: err.message });
@@ -245,137 +380,104 @@ app.post('/api/store/reviews', (req, res) => {
 });
 
 // MERCADO PAGO: Checkout Pro Preference Endpoint
-// Redirects customer directly to the official Mercado Pago portal for payment with account balance (dinero en cuenta), debit, or credit
 app.post('/api/mercadopago/create-preference', async (req, res) => {
   try {
-    const { 
-      packId,
-      packTitle, 
-      unitPrice, 
-      quantity = 1, 
-      orderId, 
-      payer = {},
-      returnUrl
-    } = req.body;
+    const { items, payer, orderId, backUrls, autoReturn, packId } = req.body;
 
-    const gateways = readJsonFile<any>(gatewaysFile, {});
-    const mpConfig = gateways.mercadoPago || {};
-    
-    // 1. Check pack-specific direct payment links (e.g. mpago.la/xxxx configured for pack-1, pack-2, or pack-3)
-    if (packId && mpConfig.packLinks && mpConfig.packLinks[packId] && mpConfig.packLinks[packId].trim().startsWith('http')) {
-      return res.json({
-        success: true,
-        init_point: mpConfig.packLinks[packId].trim(),
-        mode: 'pack_direct_link'
-      });
-    }
-
-    // 2. Check general direct payment link (e.g. mpago.la/xxxx)
-    if (mpConfig.directPaymentLink && mpConfig.directPaymentLink.trim().startsWith('http')) {
-      return res.json({
-        success: true,
-        init_point: mpConfig.directPaymentLink.trim(),
-        mode: 'direct_link'
-      });
-    }
-
-    const accessToken = (process.env.MP_ACCESS_TOKEN || mpConfig.accessToken || '').trim();
-
-    // If access token is empty or dummy placeholder
-    if (!accessToken || !accessToken.startsWith('APP_USR-') || accessToken.includes('92840192')) {
-      return res.status(400).json({
-        success: false,
-        error: 'missing_credentials',
-        message: 'No se ha configurado el Link de Pago (mpago.la) ni el Access Token de Mercado Pago en el Panel de Administración (#admin ➔ Pasarelas).'
-      });
-    }
-
-    // Determine host for callback URLs
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-    const host = req.get('host') || 'localhost:3000';
-    const baseUrl = returnUrl || `${protocol}://${host}`;
-
-    // Clean buyer email: DO NOT send a dummy email so Mercado Pago does not lock out customer wallet login
-    const validBuyerEmail = payer.email && payer.email.includes('@') && !payer.email.includes('cliente.h2derm.com')
-      ? payer.email.trim()
-      : undefined;
-
-    const preferenceBody: any = {
-      items: [
-        {
-          id: orderId || `H2D-${Date.now()}`,
-          title: packTitle || 'H2derm Kit Rostro Profesional',
-          description: 'Tratamiento Facial Dermocosmético H2derm Oficial',
-          quantity: Number(quantity) || 1,
-          unit_price: Number(unitPrice) || 0,
-          currency_id: 'ARS'
-        }
-      ],
-      back_urls: {
-        success: `${baseUrl}/?payment_status=approved&order_id=${orderId || ''}`,
-        failure: `${baseUrl}/?payment_status=failure&order_id=${orderId || ''}`,
-        pending: `${baseUrl}/?payment_status=pending&order_id=${orderId || ''}`
-      },
-      auto_return: 'approved',
-      statement_descriptor: 'H2DERM',
-      external_reference: orderId || `ORD-${Date.now()}`,
-      payment_methods: {
-        installments: mpConfig.maxInstallments || 6
+    const gateways = readJsonFile<any>(gatewaysFile, {
+      mercadoPago: {
+        enabled: true,
+        mode: 'production',
+        accessToken: '',
+        directPaymentLink: '',
+        packLinks: {}
       }
+    });
+
+    const mpConfig: any = gateways?.mercadoPago || {};
+
+    if (packId && mpConfig.packLinks && mpConfig.packLinks[packId]) {
+      const directUrl = mpConfig.packLinks[packId];
+      if (directUrl && directUrl.startsWith('http')) {
+        return res.json({
+          init_point: directUrl,
+          sandbox_init_point: directUrl,
+          type: 'direct_link'
+        });
+      }
+    }
+
+    if (mpConfig.directPaymentLink && mpConfig.directPaymentLink.startsWith('http')) {
+      return res.json({
+        init_point: mpConfig.directPaymentLink,
+        sandbox_init_point: mpConfig.directPaymentLink,
+        type: 'direct_link'
+      });
+    }
+
+    const accessToken = mpConfig.accessToken || process.env.MERCADO_PAGO_ACCESS_TOKEN || '';
+
+    if (!accessToken || accessToken.includes('YOUR_ACCESS_TOKEN') || accessToken.length < 15) {
+      return res.status(400).json({
+        error: 'missing_credentials',
+        message: 'No se ha configurado un Access Token válido de Mercado Pago ni links de pago en el Panel de Administración (#admin).'
+      });
+    }
+
+    const preferenceData: any = {
+      items: items.map((it: any) => ({
+        id: it.id || 'item-1',
+        title: it.title || 'H2derm Kit Rostro',
+        unit_price: Number(it.unit_price) || 0,
+        quantity: Number(it.quantity) || 1,
+        currency_id: it.currency_id || 'ARS'
+      })),
+      external_reference: orderId,
+      statement_descriptor: 'H2DERM OFICIAL'
     };
 
-    // If buyer entered a valid email or name, pass it to help pre-fill on Mercado Pago, but without locking to a fake guest email
-    if (validBuyerEmail || payer.name) {
-      preferenceBody.payer = {
+    if (payer && payer.email && !payer.email.includes('placeholder') && !payer.email.includes('test@example')) {
+      preferenceData.payer = {
         name: payer.name || undefined,
-        email: validBuyerEmail,
-        phone: payer.phone ? {
-          number: String(payer.phone).replace(/\D/g, '')
-        } : undefined,
-        address: payer.street ? {
-          street_name: payer.street || 'Dirección',
-          street_number: Number(payer.number) || 0,
-          zip_code: payer.zipCode || '1000'
-        } : undefined
+        email: payer.email,
+        phone: payer.phone ? { number: payer.phone } : undefined,
+        address: payer.address ? { street_name: payer.address } : undefined
       };
+    }
+
+    if (backUrls) {
+      preferenceData.back_urls = backUrls;
+      preferenceData.auto_return = autoReturn || 'approved';
     }
 
     const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
       },
-      body: JSON.stringify(preferenceBody)
+      body: JSON.stringify(preferenceData)
     });
 
-    const mpData = await mpResponse.json();
+    const data = await mpResponse.json();
 
-    if (!mpResponse.ok || !mpData.init_point) {
-      console.error('Mercado Pago API error:', mpData);
-      return res.status(400).json({
-        success: false,
+    if (!mpResponse.ok) {
+      console.error('Mercado Pago API error:', data);
+      return res.status(mpResponse.status).json({
         error: 'mp_api_error',
-        message: mpData.message || 'Error al comunicarse con Mercado Pago.',
-        details: mpData
+        message: data.message || 'Error al comunicarse con Mercado Pago.',
+        details: data
       });
     }
 
-    // In sandbox mode use sandbox_init_point if available, else init_point
-    const redirectUrl = (mpConfig.mode === 'sandbox' && mpData.sandbox_init_point) 
-      ? mpData.sandbox_init_point 
-      : mpData.init_point;
-
     res.json({
-      success: true,
-      init_point: redirectUrl,
-      preferenceId: mpData.id,
-      sandbox: mpConfig.mode === 'sandbox'
+      id: data.id,
+      init_point: data.init_point,
+      sandbox_init_point: data.sandbox_init_point
     });
   } catch (err: any) {
-    console.error('Mercado Pago preference creation failed:', err);
+    console.error('Error creating MP preference:', err);
     res.status(500).json({
-      success: false,
       error: 'server_error',
       message: 'Ocurrió un error inesperado al generar el checkout de Mercado Pago.',
       details: err.message

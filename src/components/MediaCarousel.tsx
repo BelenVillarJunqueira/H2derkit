@@ -16,6 +16,51 @@ interface MediaCarouselProps {
   media: MediaItem[];
 }
 
+// Helper to parse external video sources (Instagram Reels, YouTube Shorts, direct MP4)
+const parseVideoSource = (url: string): {
+  type: 'instagram' | 'youtube' | 'tiktok' | 'html5';
+  embedUrl?: string;
+  directUrl?: string;
+} => {
+  if (!url) return { type: 'html5', directUrl: '' };
+
+  // Instagram Reel or Post: https://www.instagram.com/reel/C3abc.../ or /p/C3abc.../
+  const igMatch = url.match(/instagram\.com\/(?:reel|p)\/([A-Za-z0-9_-]+)/);
+  if (igMatch) {
+    return {
+      type: 'instagram',
+      embedUrl: `https://www.instagram.com/reel/${igMatch[1]}/embed`
+    };
+  }
+
+  // YouTube Shorts or regular video
+  const ytShortsMatch = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/);
+  if (ytShortsMatch) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube.com/embed/${ytShortsMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${ytShortsMatch[1]}&playsinline=1`
+    };
+  }
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]+)/);
+  if (ytMatch) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${ytMatch[1]}&playsinline=1`
+    };
+  }
+
+  // TikTok
+  const ttMatch = url.match(/tiktok\.com\/.*\/video\/(\d+)/);
+  if (ttMatch) {
+    return {
+      type: 'tiktok',
+      embedUrl: `https://www.tiktok.com/embed/v2/${ttMatch[1]}`
+    };
+  }
+
+  return { type: 'html5', directUrl: url };
+};
+
 export const MediaCarousel: React.FC<MediaCarouselProps> = ({ media }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
@@ -40,6 +85,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({ media }) => {
 
   const safeIndex = Math.max(0, Math.min(selectedIndex, media.length - 1));
   const currentItem = media[safeIndex];
+  const videoSource = currentItem.type === 'video' ? parseVideoSource(currentItem.url) : null;
 
   const handlePrev = () => {
     setSelectedIndex((safeIndex - 1 + media.length) % media.length);
@@ -74,29 +120,57 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({ media }) => {
 
         {/* Content item: Video or Image */}
         {currentItem.type === 'video' ? (
-          <div className="relative w-full h-full bg-black flex items-center justify-center">
-            <video
-              key={currentItem.url}
-              src={currentItem.url}
-              autoPlay
-              loop
-              muted={isMuted}
-              playsInline
-              className="w-full h-full object-cover"
-            />
-            {/* Video overlay controls */}
-            <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2">
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-xs transition-colors"
-                title={isMuted ? 'Activar sonido' : 'Silenciar'}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-              <span className="text-[11px] font-semibold text-white/90 bg-black/50 px-2 py-0.5 rounded-full">
-                Video Demostrativo
-              </span>
-            </div>
+          <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+            {videoSource?.type === 'instagram' ? (
+              <iframe
+                src={videoSource.embedUrl}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                title="Instagram Reel"
+              />
+            ) : videoSource?.type === 'youtube' ? (
+              <iframe
+                src={videoSource.embedUrl}
+                className="w-full h-full border-0 pointer-events-auto"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="YouTube Video"
+              />
+            ) : videoSource?.type === 'tiktok' ? (
+              <iframe
+                src={videoSource.embedUrl}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                title="TikTok Video"
+              />
+            ) : (
+              <>
+                <video
+                  key={currentItem.url}
+                  src={currentItem.url}
+                  autoPlay
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  controls={false}
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+                {/* Video overlay controls */}
+                <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2">
+                  <button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-xs transition-colors cursor-pointer"
+                    title={isMuted ? 'Activar sonido' : 'Silenciar'}
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 px-2 py-0.5 rounded-full">
+                    Video Demostrativo
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <img
@@ -105,7 +179,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({ media }) => {
             alt={currentItem.title || 'Producto H2derm'}
             className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-102"
             onError={(e) => {
-              // Fallback if URL fails
               (e.currentTarget as HTMLImageElement).src =
                 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=900&auto=format&fit=crop';
             }}

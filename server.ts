@@ -76,6 +76,8 @@ const saveBase64File = async (base64String: string, prefix = 'img'): Promise<{ u
   else if (mimeType.includes('gif')) ext = 'gif';
   else if (mimeType.includes('mp4')) ext = 'mp4';
   else if (mimeType.includes('webm')) ext = 'webm';
+  else if (mimeType.includes('quicktime') || mimeType.includes('mov')) ext = 'mov';
+  else if (mimeType.includes('video')) ext = 'mp4';
 
   const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
   const filePath = path.join(uploadsDir, filename);
@@ -87,23 +89,26 @@ const saveBase64File = async (base64String: string, prefix = 'img'): Promise<{ u
     console.error('Error saving uploaded file to disk:', err);
   }
 
-  // 2. Persist permanently to MongoDB Atlas (guarantees images survive Render restarts)
+  // 2. Persist permanently to MongoDB Atlas (guarantees files survive Render restarts)
   if (isMongoConnected()) {
-    try {
-      await ImageModel.findOneAndUpdate(
-        { id: filename },
-        { 
-          id: filename, 
-          data: base64Data, 
-          contentType: mimeType, 
-          filename,
-          sizeKb: Math.round(base64Data.length * 0.75 / 1024),
-          createdAt: new Date() 
-        },
-        { upsert: true }
-      );
-    } catch (mongoErr) {
-      console.error('Error saving image to MongoDB Atlas:', mongoErr);
+    // Only persist in Mongo if under BSON 15MB limit to prevent BSONObjectTooLarge error
+    if (base64Data.length < 15 * 1024 * 1024) {
+      try {
+        await ImageModel.findOneAndUpdate(
+          { id: filename },
+          { 
+            id: filename, 
+            data: base64Data, 
+            contentType: mimeType, 
+            filename,
+            sizeKb: Math.round(base64Data.length * 0.75 / 1024),
+            createdAt: new Date() 
+          },
+          { upsert: true }
+        );
+      } catch (mongoErr) {
+        console.error('Error saving file to MongoDB Atlas:', mongoErr);
+      }
     }
   }
 
@@ -137,13 +142,29 @@ const extractAndPersistBase64Images = async (data: any, prefix = 'item'): Promis
   return data;
 };
 
+// Helper to determine accurate MIME type
+const getMimeType = (filename: string, fallback = 'image/jpeg'): string => {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith('.mp4')) return 'video/mp4';
+  if (lower.endsWith('.webm')) return 'video/webm';
+  if (lower.endsWith('.mov')) return 'video/quicktime';
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  return fallback;
+};
+
 // Serve uploaded files: check disk cache first, recover from MongoDB Atlas if Render restarted
 app.get('/uploads/:filename', async (req, res) => {
   const { filename } = req.params;
   const filePath = path.join(uploadsDir, filename);
+  const mimeType = getMimeType(filename);
 
   // 1. Serve immediately from disk if available
   if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Accept-Ranges', 'bytes');
     return res.sendFile(filePath);
   }
 
@@ -154,16 +175,17 @@ app.get('/uploads/:filename', async (req, res) => {
       if (doc && doc.data) {
         const buffer = Buffer.from(doc.data, 'base64');
         try { fs.writeFileSync(filePath, buffer); } catch (_) {}
-        res.setHeader('Content-Type', doc.contentType || 'image/jpeg');
+        res.setHeader('Content-Type', doc.contentType || mimeType);
+        res.setHeader('Accept-Ranges', 'bytes');
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         return res.send(buffer);
       }
     } catch (err) {
-      console.error('Error recovering image from Mongo:', err);
+      console.error('Error recovering file from Mongo:', err);
     }
   }
 
-  return res.status(404).send('Imagen no encontrada');
+  return res.status(404).send('Archivo no encontrado');
 });
 
 // Fallback static uploads serving
@@ -194,6 +216,52 @@ app.get('/api/mongo/status', async (_req, res) => {
 app.post('/api/mongo/retry', async (_req, res) => {
   const connected = await connectMongoDB();
   res.json({ success: connected, ...getMongoStatus() });
+});
+
+// High-speed binary upload endpoint for reels & videos (no base64 inflation)
+app.post('/api/upload-video-binary', express.raw({ type: '*/*', limit: '80mb' }), async (req, res) => {
+  try {
+    const rawBuffer = req.body;
+    if (!rawBuffer || !Buffer.isBuffer(rawBuffer) || rawBuffer.length === 0) {
+      return res.status(400).json({ error: 'Archivo de video vacío o no recibido' });
+    }
+
+    const filename = `reel_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.mp4`;
+    const filePath = path.join(uploadsDir, filename);
+    fs.writeFileSync(filePath, rawBuffer);
+
+    // If within BSON limit (under 14MB), also persist to MongoDB Atlas
+    if (isMongoConnected() && rawBuffer.length < 14 * 1024 * 1024) {
+      try {
+        await ImageModel.findOneAndUpdate(
+          { id: filename },
+          {
+            id: filename,
+            data: rawBuffer.toString('base64'),
+            contentType: 'video/mp4',
+            filename,
+            sizeKb: Math.round(rawBuffer.length / 1024),
+            createdAt: new Date()
+          },
+          { upsert: true }
+        );
+      } catch (mongoErr) {
+        console.warn('Large video stored on disk, skipped Mongo Atlas cache:', mongoErr);
+      }
+    }
+
+    res.json({
+      success: true,
+      url: `/uploads/${filename}`,
+      fileUrl: `/uploads/${filename}`,
+      filename,
+      sizeKb: Math.round(rawBuffer.length / 1024),
+      mongo: isMongoConnected() && rawBuffer.length < 14 * 1024 * 1024
+    });
+  } catch (err: any) {
+    console.error('Binary video upload error:', err);
+    res.status(500).json({ error: 'Error procesando archivo de video', details: err.message });
+  }
 });
 
 // Upload endpoint

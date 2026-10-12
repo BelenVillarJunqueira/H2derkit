@@ -25,7 +25,7 @@ export const DEFAULT_CONTENT: StoreContent = {
   brandName: 'H2derm',
   productKicker: 'H2DERM DERMA-LABS · TRATAMIENTO PROFESIONAL DE ALTA GAMA',
   productTitle: 'H2derm® PROFESIONAL KIT — Rutina Completa Rostro & Piel Renovada',
-  productTagline: 'Fórmula dermocosmética avanzada desarrollada para aliviar piel seca y con picazón, restaurar la barrera lipídica, aclarar manchas persistentes y aportar luminosidad inmediata en 14 días. Imagenes ilustrativas.',
+  productTagline: 'Fórmula dermocosmética avanzada desarrollada para aliviar piel seca y con picazón, restaurar la barrera lipídica, aclarar manchas persistentes y aportar luminosidad inmediata en 14 días.',
   ratingScore: 4.9,
   ratingCount: 2847,
   stockRemaining: 7,
@@ -61,10 +61,9 @@ export const DEFAULT_CONTENT: StoreContent = {
       salePrice: 62200,
       discountPercentage: 48,
       savings: 57600,
-      freeGift: '🎁 REGALO: Neceser Térmico Edición Limitada ($15.000 valor)',
+      freeGift: '..',
       features: [
         '2 Cajas completas (8 productos en total)',
-        'Neceser Térmico de lujo sin cargo',
         'Envío Prioritario Express en 24/48hs',
         'Garantía de Satisfacción Total 30 Días'
       ]
@@ -79,10 +78,9 @@ export const DEFAULT_CONTENT: StoreContent = {
       salePrice: 75400,
       discountPercentage: 58,
       savings: 104300,
-      freeGift: '🎁 REGALO: Rodillo Facial Cuarzo Rosa + Neceser de Lujo',
+      freeGift: '...',
       features: [
         '3 Cajas completas (12 productos en total)',
-        'Set Doble de Regalos Exclusivos',
         'Despacho y Envío VIP Prioritario',
         'Garantía Extendida & Soporte Dermocosmético'
       ]
@@ -118,7 +116,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       percentage: '94%',
       badge: 'Día 14 a 21',
       title: 'Aclarado Visible de Manchas Solares y Tono Parejo',
-      description: 'Gracias a la acción combinada del Bakuchiol y el ADN Liposomado.'
+      description: 'Gracias a la acción combinada del Bakuchiol y la Rosa Mosqueta de prensado en frío.'
     },
     {
       percentage: '96%',
@@ -147,7 +145,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       subtitle: 'Nutrición celular y cuidado específico',
       time: 'Día y Noche · Gotero dosificador',
       image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop',
-      description: 'El corazón de la fórmula: combina ADN Liposomado rico en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.',
+      description: 'El corazón de la fórmula: combina Rosa Mosqueta biológica rica en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.',
       benefits: ['Atenúa manchas y líneas finas', 'Efecto lifting y luminosidad', 'Textura ligera no oleosa']
     },
     {
@@ -187,7 +185,7 @@ export const DEFAULT_CONTENT: StoreContent = {
     {
       problemName: 'Manchas y Tono Desparejo',
       problemDescription: 'Hiperpigmentación por radiación solar, daño oxidativo o marcas residuales que envejecen el rostro.',
-      solutionName: 'Bakuchiol 1% + ADN Liposomado',
+      solutionName: 'Bakuchiol 1% + Rosa Mosqueta',
       solutionDescription: 'Inhibe la melanina y aclara progresivamente.'
     },
     {
@@ -207,7 +205,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       tag: 'Antiedad & Manchas'
     },
     {
-      name: 'ADN Liposomado',
+      name: 'Rosa Mosqueta Orgánica',
       type: 'Prensado en Frío',
       benefit: 'Rica en ácidos grasos esenciales omega 3, 6 y 9. Cicatriza, regenera tejidos dañados y atenúa manchas oscuras.',
       tag: 'Regenerador Celular'
@@ -245,9 +243,9 @@ export const DEFAULT_CONTENT: StoreContent = {
   shippingEstimatedDays: '24 a 48 horas en todo el país',
   freeShippingThresholdText: 'Envío 100% Bonificado Sin Cargo',
 
-  whatsappNumber: '+54 9 3515056742',
-  supportEmail: '...',
-  supportPhone: '...',
+  whatsappNumber: '+54 9 11 4920-8842',
+  supportEmail: 'contacto@h2derm.shop',
+  supportPhone: '0800-444-H2DERM (4233)',
   shippingCarriersText: 'Andreani · Correo Argentino · Moto Express en el día'
 };
 
@@ -314,7 +312,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 2 días',
     verified: true,
     title: '¡Adiós a la picazón y tirantez después de años sufriendo!',
-    comment: 'Tengo piel atópica hipersensible, cualquier crema me ardía o me dejaba la cara colorada. Con H2derm el cambio fue desde la primera noche: me levanté sin esa sensación de sequedad insoportable. Y el sérum de ADN Liposomado con bakuchiol me atenuó notablemente dos manchas del sol. Lo pedí y me llegó al día siguiente con pago contraentrega. ¡1000% recomendable!',
+    comment: 'Tengo piel atópica hipersensible, cualquier crema me ardía o me dejaba la cara colorada. Con H2derm el cambio fue desde la primera noche: me levanté sin esa sensación de sequedad insoportable. Y el sérum de rosa mosqueta con bakuchiol me atenuó notablemente dos manchas del sol. Lo pedí y me llegó al día siguiente con pago contraentrega. ¡1000% recomendable!',
     photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop',
     likes: 34
   },
@@ -350,7 +348,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 1 semana',
     verified: true,
     title: 'Como cosmetóloga, la formulación me sorprendió gratamente',
-    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y el ADN Liposomado es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
+    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y rosa mosqueta es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
     photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=600&auto=format&fit=crop',
     likes: 47
   }
@@ -375,12 +373,12 @@ export const DEFAULT_GATEWAYS: PaymentGatewaysSettings = {
   },
   transferencia: {
     enabled: true,
-    bankName: 'Banco Galicia',
+    bankName: 'Banco Santander / Brubank',
     accountHolder: 'H2DERM DERMOCOSMETICA S.R.L.',
-    cbu: '0070327530004092450465',
-    cvu: '0000003100108191210230',
-    alias: 'rbvillar3.gal',
-    cuit: '23-37066549-4',
+    cbu: '0720194888000039201948',
+    cvu: '0000003100092837461920',
+    alias: 'H2DERM.OFICIAL.PAGOS',
+    cuit: '30-71649201-9',
     extraDiscountPercent: 10,
     instructions: 'Una vez hecha la transferencia bancaria o por Mercado Pago a nuestro Alias, adjunta tu comprobante o envíalo por WhatsApp con tu número de pedido.'
   }
@@ -986,8 +984,41 @@ export const savePaymentGateways = (gateways: PaymentGatewaysSettings): void => 
   }).catch(() => {});
 };
 
-// Upload image to server filesystem so it persists universally on Render and all devices
+// Fast binary upload specifically for videos and reels
+export const uploadVideoFile = async (file: File): Promise<string> => {
+  try {
+    const res = await fetch('/api/upload-video-binary', {
+      method: 'POST',
+      headers: {
+        'Content-Type': file.type || 'video/mp4'
+      },
+      body: file
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.fileUrl) return data.fileUrl;
+      if (data.url) return data.url;
+    }
+  } catch (err) {
+    console.warn('Binary video upload failed, trying fallback:', err);
+  }
+  return uploadImageToServer(file, 'reel');
+};
+
+// Upload image or video to server filesystem so it persists universally on Render and all devices
 export const uploadImageToServer = async (fileOrBase64: File | string, prefix = 'img'): Promise<string> => {
+  // If already a server relative URL or external URL, return as is
+  if (typeof fileOrBase64 === 'string') {
+    if (fileOrBase64.startsWith('/uploads/') || fileOrBase64.startsWith('http://') || fileOrBase64.startsWith('https://')) {
+      return fileOrBase64;
+    }
+  }
+
+  // If it's a video file, upload via direct binary stream (ultra fast and avoids Base64 limits)
+  if (typeof fileOrBase64 !== 'string' && fileOrBase64.type && fileOrBase64.type.startsWith('video/')) {
+    return uploadVideoFile(fileOrBase64);
+  }
+
   let base64String = '';
   if (typeof fileOrBase64 === 'string') {
     base64String = fileOrBase64;
@@ -1202,7 +1233,7 @@ export const recordOrderAnalytics = (amount: number): void => {
 };
 
 export const getAdminPin = (): string => {
-  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '2222';
+  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || 'admin123';
 };
 
 export const setAdminPin = (newPin: string): void => {

@@ -1,11 +1,19 @@
+import dotenv from 'dotenv';
+// Load environment variables immediately
+dotenv.config();
+
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import { connectMongoDB, isMongoConnected, StoreConfigModel, OrderModel } from './src/db/mongo';
-
-dotenv.config();
+import { 
+  connectMongoDB, 
+  isMongoConnected, 
+  getMongoStatus,
+  StoreConfigModel, 
+  OrderModel, 
+  ImageModel 
+} from './src/db/mongo';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,9 +35,6 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 // Body parsing with generous limit for images
 app.use(express.json({ limit: '60mb' }));
 app.use(express.urlencoded({ limit: '60mb', extended: true }));
-
-// Serve uploaded files statically
-app.use('/uploads', express.static(uploadsDir));
 
 // Helper: Read JSON file safely
 const readJsonFile = <T>(filePath: string, fallback: T): T => {
@@ -55,13 +60,13 @@ const writeJsonFile = (filePath: string, data: any): void => {
   }
 };
 
-// Helper: Save Base64 string to an image file in uploads
-const saveBase64File = (base64String: string, prefix = 'img'): string => {
-  if (!base64String || typeof base64String !== 'string') return base64String;
-  if (!base64String.startsWith('data:')) return base64String;
+// Helper: Save Base64 string to both disk and MongoDB Atlas
+const saveBase64File = async (base64String: string, prefix = 'img'): Promise<{ url: string; filename: string }> => {
+  if (!base64String || typeof base64String !== 'string') return { url: base64String, filename: '' };
+  if (!base64String.startsWith('data:')) return { url: base64String, filename: '' };
 
   const matches = base64String.match(/^data:([A-Za-z0-9-+/]+);base64,(.+)$/);
-  if (!matches || matches.length !== 3) return base64String;
+  if (!matches || matches.length !== 3) return { url: base64String, filename: '' };
 
   const mimeType = matches[1];
   const base64Data = matches[2];
@@ -75,14 +80,94 @@ const saveBase64File = (base64String: string, prefix = 'img'): string => {
   const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
   const filePath = path.join(uploadsDir, filename);
 
+  // 1. Write to local disk cache
   try {
     fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-    return `/uploads/${filename}`;
   } catch (err) {
-    console.error('Error saving uploaded file:', err);
-    return base64String;
+    console.error('Error saving uploaded file to disk:', err);
   }
+
+  // 2. Persist permanently to MongoDB Atlas (guarantees images survive Render restarts)
+  if (isMongoConnected()) {
+    try {
+      await ImageModel.findOneAndUpdate(
+        { id: filename },
+        { 
+          id: filename, 
+          data: base64Data, 
+          contentType: mimeType, 
+          filename,
+          sizeKb: Math.round(base64Data.length * 0.75 / 1024),
+          createdAt: new Date() 
+        },
+        { upsert: true }
+      );
+    } catch (mongoErr) {
+      console.error('Error saving image to MongoDB Atlas:', mongoErr);
+    }
+  }
+
+  return { url: `/uploads/${filename}`, filename };
 };
+
+// Helper: Automatically scan and persist any embedded Base64 images into MongoDB
+const extractAndPersistBase64Images = async (data: any, prefix = 'item'): Promise<any> => {
+  if (!data) return data;
+  if (typeof data === 'string') {
+    if (data.startsWith('data:image/') || data.startsWith('data:video/')) {
+      const res = await saveBase64File(data, prefix);
+      return res.url;
+    }
+    return data;
+  }
+  if (Array.isArray(data)) {
+    const arr = [];
+    for (let i = 0; i < data.length; i++) {
+      arr.push(await extractAndPersistBase64Images(data[i], `${prefix}_${i}`));
+    }
+    return arr;
+  }
+  if (typeof data === 'object') {
+    const copy: any = {};
+    for (const [key, val] of Object.entries(data)) {
+      copy[key] = await extractAndPersistBase64Images(val, `${prefix}_${key}`);
+    }
+    return copy;
+  }
+  return data;
+};
+
+// Serve uploaded files: check disk cache first, recover from MongoDB Atlas if Render restarted
+app.get('/uploads/:filename', async (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(uploadsDir, filename);
+
+  // 1. Serve immediately from disk if available
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+
+  // 2. Recover from MongoDB Atlas if disk was wiped
+  if (isMongoConnected()) {
+    try {
+      const doc = await ImageModel.findOne({ id: filename });
+      if (doc && doc.data) {
+        const buffer = Buffer.from(doc.data, 'base64');
+        try { fs.writeFileSync(filePath, buffer); } catch (_) {}
+        res.setHeader('Content-Type', doc.contentType || 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return res.send(buffer);
+      }
+    } catch (err) {
+      console.error('Error recovering image from Mongo:', err);
+    }
+  }
+
+  return res.status(404).send('Imagen no encontrada');
+});
+
+// Fallback static uploads serving
+app.use('/uploads', express.static(uploadsDir));
 
 // Healthcheck endpoint for Render
 app.get('/api/health', (_req, res) => {
@@ -90,19 +175,42 @@ app.get('/api/health', (_req, res) => {
     status: 'ok', 
     timestamp: new Date().toISOString(),
     service: 'H2derm Official Store API',
-    mongoConnected: isMongoConnected()
+    mongo: getMongoStatus()
   });
 });
 
+// MongoDB connection status & retry endpoints
+app.get('/api/mongo/status', async (_req, res) => {
+  const status = getMongoStatus();
+  let imageCount = 0;
+  if (status.connected) {
+    try {
+      imageCount = await ImageModel.countDocuments();
+    } catch (_) {}
+  }
+  res.json({ ...status, imageCount });
+});
+
+app.post('/api/mongo/retry', async (_req, res) => {
+  const connected = await connectMongoDB();
+  res.json({ success: connected, ...getMongoStatus() });
+});
+
 // Upload endpoint
-app.post('/api/upload', (req, res) => {
+app.post('/api/upload', async (req, res) => {
   try {
     const { image, prefix } = req.body;
     if (!image) {
       return res.status(400).json({ error: 'Falta la imagen' });
     }
-    const fileUrl = saveBase64File(image, prefix || 'upload');
-    res.json({ success: true, url: image, fileUrl });
+    const result = await saveBase64File(image, prefix || 'upload');
+    res.json({ 
+      success: true, 
+      url: result.url, 
+      fileUrl: result.url,
+      filename: result.filename,
+      mongo: isMongoConnected() 
+    });
   } catch (err: any) {
     console.error('Upload error:', err);
     res.status(500).json({ error: 'Error procesando la imagen', details: err.message });
@@ -138,19 +246,21 @@ app.get('/api/store/content', async (_req, res) => {
 
 app.post('/api/store/content', async (req, res) => {
   try {
-    const content = req.body;
-    writeJsonFile(contentFile, content);
-    writeJsonFile(defaultContentFile, content);
+    // Process and persist any Base64 images directly into MongoDB & uploads
+    const cleanContent = await extractAndPersistBase64Images(req.body, 'content');
+    
+    writeJsonFile(contentFile, cleanContent);
+    writeJsonFile(defaultContentFile, cleanContent);
 
     if (isMongoConnected()) {
       await StoreConfigModel.findOneAndUpdate(
         { key: 'content' },
-        { key: 'content', data: content, updatedAt: new Date() },
+        { key: 'content', data: cleanContent, updatedAt: new Date() },
         { upsert: true }
       );
     }
 
-    res.json({ success: true, content, mongo: isMongoConnected() });
+    res.json({ success: true, content: cleanContent, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving content:', err);
     res.status(500).json({ error: 'Error guardando contenido', details: err.message });
@@ -186,19 +296,21 @@ app.get('/api/store/media', async (_req, res) => {
 
 app.post('/api/store/media', async (req, res) => {
   try {
-    const media = req.body;
-    writeJsonFile(mediaFile, media);
-    writeJsonFile(defaultMediaFile, media);
+    // Process and persist any Base64 images directly into MongoDB & uploads
+    const cleanMedia = await extractAndPersistBase64Images(req.body, 'carousel');
+    
+    writeJsonFile(mediaFile, cleanMedia);
+    writeJsonFile(defaultMediaFile, cleanMedia);
 
     if (isMongoConnected()) {
       await StoreConfigModel.findOneAndUpdate(
         { key: 'media' },
-        { key: 'media', data: media, updatedAt: new Date() },
+        { key: 'media', data: cleanMedia, updatedAt: new Date() },
         { upsert: true }
       );
     }
 
-    res.json({ success: true, media, mongo: isMongoConnected() });
+    res.json({ success: true, media: cleanMedia, mongo: isMongoConnected() });
   } catch (err: any) {
     console.error('Error saving media:', err);
     res.status(500).json({ error: 'Error guardando media', details: err.message });
@@ -208,12 +320,15 @@ app.post('/api/store/media', async (req, res) => {
 // Synchronize all defaults permanently for Render deploy and MongoDB
 app.post('/api/store/save-defaults', async (req, res) => {
   try {
-    const { content, media, gateways } = req.body;
+    let { content, media, gateways } = req.body;
+    
     if (content) {
+      content = await extractAndPersistBase64Images(content, 'content');
       writeJsonFile(contentFile, content);
       writeJsonFile(defaultContentFile, content);
     }
     if (media) {
+      media = await extractAndPersistBase64Images(media, 'carousel');
       writeJsonFile(mediaFile, media);
       writeJsonFile(defaultMediaFile, media);
     }
@@ -247,9 +362,12 @@ app.post('/api/store/save-defaults', async (req, res) => {
 
     res.json({ 
       success: true, 
+      content,
+      media,
+      gateways,
       message: isMongoConnected() 
         ? '¡Guardado con éxito en MongoDB Atlas y en archivos del servidor!' 
-        : '¡Guardado con éxito en los archivos del servidor!',
+        : '¡Guardado en los archivos del servidor! (Conecta MongoDB para que nunca se borre en Render)',
       mongo: isMongoConnected()
     });
   } catch (err: any) {

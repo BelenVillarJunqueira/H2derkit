@@ -1038,6 +1038,7 @@ export const uploadImageToServer = async (fileOrBase64: File | string, prefix = 
     });
     if (res.ok) {
       const data = await res.json();
+      if (data.fileUrl) return data.fileUrl;
       if (data.url) return data.url;
     }
   } catch (err) {
@@ -1091,58 +1092,72 @@ export const createMercadoPagoPreference = async (params: CreatePreferenceParams
   }
 };
 
-// Sync all local configurations, media, and images directly to Render server files
-export const syncAllToServer = async (): Promise<{ success: boolean; message: string }> => {
+// Check MongoDB connection status on server
+export const checkMongoStatus = async (): Promise<{
+  connected: boolean;
+  uriConfigured: boolean;
+  maskedUri?: string | null;
+  imageCount?: number;
+  lastError?: string | null;
+}> => {
+  try {
+    const res = await fetch('/api/mongo/status');
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (_) {}
+  return { connected: false, uriConfigured: false, lastError: 'No se pudo comunicar con el servidor' };
+};
+
+// Retry MongoDB connection from client
+export const retryMongoConnection = async (): Promise<boolean> => {
+  try {
+    const res = await fetch('/api/mongo/retry', { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      return Boolean(data.success);
+    }
+  } catch (_) {}
+  return false;
+};
+
+// Sync all local configurations, media, and images directly to Render server & MongoDB Atlas
+export const syncAllToServer = async (): Promise<{ success: boolean; message: string; mongo?: boolean }> => {
   try {
     const content = getStoreContent();
     const media = getStoreMedia();
     const gateways = getPaymentGateways();
 
-    const [resContent, resMedia, resGateways, resDefaults] = await Promise.all([
-      fetch('/api/store/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      }),
-      fetch('/api/store/media', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(media)
-      }),
-      fetch('/api/store/gateways', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gateways)
-      }),
-      fetch('/api/store/save-defaults', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, media, gateways })
-      })
-    ]);
+    const res = await fetch('/api/store/save-defaults', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, media, gateways })
+    });
 
-    if (resContent.ok) {
-      const dataContent = await resContent.json();
-      if (dataContent.content) {
-        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(dataContent.content));
-        saveContentToIndexedDB(dataContent.content);
-        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: dataContent.content }));
+    if (res.ok) {
+      const data = await res.json();
+      if (data.content) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(data.content));
+        saveContentToIndexedDB(data.content);
+        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: data.content }));
       }
-    }
-
-    if (resMedia.ok) {
-      const dataMedia = await resMedia.json();
-      if (dataMedia.media) {
-        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(dataMedia.media));
-        saveMediaToIndexedDB(dataMedia.media);
-        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: dataMedia.media }));
+      if (data.media) {
+        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(data.media));
+        saveMediaToIndexedDB(data.media);
+        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: data.media }));
       }
+      return { 
+        success: true, 
+        message: data.message || '¡Toda la tienda (imágenes, textos y pasarelas) se sincronizó con éxito!',
+        mongo: data.mongo
+      };
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.error || `Error del servidor (${res.status})`
+      };
     }
-
-    return { 
-      success: true, 
-      message: '¡Toda la tienda (imágenes, textos y pasarelas) se sincronizó con éxito en el servidor de Render!' 
-    };
   } catch (err: any) {
     return { 
       success: false, 

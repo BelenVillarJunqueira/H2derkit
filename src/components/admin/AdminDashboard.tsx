@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Lock, 
   X, 
@@ -17,7 +17,9 @@ import {
   Download,
   Upload,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Database,
+  Check
 } from 'lucide-react';
 import { OrdersManager } from './OrdersManager';
 import { ContentEditor } from './ContentEditor';
@@ -29,6 +31,8 @@ import {
   getAdminPin, 
   setAdminPin,
   syncAllToServer,
+  checkMongoStatus,
+  retryMongoConnection,
   getStoreContent,
   getStoreMedia,
   getPaymentGateways,
@@ -62,6 +66,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [syncSuccess, setSyncSuccess] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement>(null);
 
+  // MongoDB connection state
+  const [mongoStatus, setMongoStatus] = useState<{
+    connected: boolean;
+    uriConfigured: boolean;
+    maskedUri?: string | null;
+    imageCount?: number;
+    lastError?: string | null;
+  } | null>(null);
+  const [isRetryingMongo, setIsRetryingMongo] = useState(false);
+  const [showMongoModal, setShowMongoModal] = useState(false);
+
+  // Check MongoDB status when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkMongoStatus().then(setMongoStatus);
+    }
+  }, [isAuthenticated]);
+
   if (!isOpen) return null;
 
   const handleLogin = (e: React.FormEvent) => {
@@ -73,6 +95,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     } else {
       setPinError(true);
     }
+  };
+
+  const handleRetryMongo = async () => {
+    setIsRetryingMongo(true);
+    await retryMongoConnection();
+    const updated = await checkMongoStatus();
+    setMongoStatus(updated);
+    setIsRetryingMongo(false);
   };
 
   const handleChangePin = (e: React.FormEvent) => {
@@ -95,6 +125,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsSyncing(false);
     setSyncSuccess(res.success);
     setSyncMessage(res.message);
+    checkMongoStatus().then(setMongoStatus);
     setTimeout(() => {
       setSyncMessage('');
     }, 4500);
@@ -181,12 +212,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     setPinInput(e.target.value);
                     setPinError(false);
                   }}
-                  placeholder="Ingrese su clave"
+                  placeholder="Ingresa tu clave "
                   className="w-full text-center text-lg tracking-widest p-3.5 bg-slate-50 rounded-2xl border border-slate-300 font-mono font-bold focus:ring-2 focus:ring-purple-700 outline-none"
                 />
                 {pinError && (
                   <span className="text-xs font-bold text-rose-600 block mt-1.5">
-                    Clave incorrecta.
+                    Clave incorrecta. Intenta nuevamente.
                   </span>
                 )}
               </div>
@@ -225,6 +256,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-2.5">
+              {/* MongoDB Persistence Status Badge / Button */}
+              {mongoStatus && (
+                <button
+                  type="button"
+                  onClick={() => setShowMongoModal(true)}
+                  className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
+                    mongoStatus.connected
+                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300 animate-pulse'
+                  }`}
+                  title={
+                    mongoStatus.connected
+                      ? `MongoDB Atlas activo (${mongoStatus.imageCount || 0} imágenes guardadas). Haz clic para ver detalles.`
+                      : 'MongoDB no conectado. Haz clic para ver instrucciones de persistencia en Render.'
+                  }
+                >
+                  <Database className={`w-3.5 h-3.5 ${mongoStatus.connected ? 'text-emerald-600' : 'text-amber-600'}`} />
+                  <span className="hidden sm:inline">
+                    {mongoStatus.connected ? 'MongoDB Conectado' : 'Conectar MongoDB'}
+                  </span>
+                  <span className="sm:hidden">
+                    {mongoStatus.connected ? 'Mongo OK' : 'Mongo Off'}
+                  </span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={handleSyncToRender}
@@ -237,7 +294,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 ) : (
                   <Cloud className="w-3.5 h-3.5" />
                 )}
-                <span>{isSyncing ? 'Guardando en Render...' : 'Guardar para Render'}</span>
+                <span>{isSyncing ? 'Guardando...' : 'Guardar en Render'}</span>
               </button>
 
               <button
@@ -436,6 +493,108 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                   </form>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Modal for MongoDB Atlas Persistence Configuration & Diagnostics */}
+          {showMongoModal && (
+            <div 
+              role="dialog"
+              aria-modal="true"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-200 space-y-4 text-left my-8">
+                <button
+                  onClick={() => setShowMongoModal(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1"
+                  aria-label="Cerrar modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2.5 rounded-2xl ${mongoStatus?.connected ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-base text-slate-900">
+                      Estado de MongoDB Atlas
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Base de datos para persistencia definitiva en Render
+                    </p>
+                  </div>
+                </div>
+
+                {mongoStatus?.connected ? (
+                  <div className="space-y-3 bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl">
+                    <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>¡Conexión Exitosa y Activa!</span>
+                    </div>
+                    <p className="text-xs text-emerald-900 leading-relaxed">
+                      Todas tus imágenes subidas ({mongoStatus.imageCount || 0} fotos guardadas en Atlas), textos, precios y pedidos se guardan en la nube. Aunque Render se reinicie o apague, <strong>nunca perderás nada</strong>.
+                    </p>
+                    {mongoStatus.maskedUri && (
+                      <div className="text-[11px] font-mono bg-white/80 p-2 rounded-lg text-slate-600 border border-emerald-200 truncate">
+                        Conectado a: {mongoStatus.maskedUri}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3 bg-amber-50 border border-amber-200 p-4 rounded-2xl">
+                    <div className="flex items-center gap-2 text-amber-900 font-extrabold text-xs">
+                      <AlertCircle className="w-4 h-4 text-amber-600" />
+                      <span>MongoDB no conectado actualmente</span>
+                    </div>
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Render utiliza discos temporales que se reinician. Para que tus fotos y cambios <strong>nunca se borren</strong>, conecta tu base de datos gratuita de MongoDB Atlas.
+                    </p>
+
+                    {mongoStatus?.lastError && (
+                      <div className="text-[11px] bg-rose-50 border border-rose-200 text-rose-800 p-2 rounded-lg font-mono">
+                        Error: {mongoStatus.lastError}
+                      </div>
+                    )}
+
+                    <div className="text-xs space-y-1.5 text-slate-700 pt-1">
+                      <div className="font-bold text-slate-900">Pasos para conectar en Render:</div>
+                      <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
+                        <li>Ingresa a tu cuenta de <strong>render.com</strong> y abre tu Web Service.</li>
+                        <li>En el menú izquierdo, ve a <strong>Environment</strong>.</li>
+                        <li>Haz clic en <strong>Add Environment Variable</strong>.</li>
+                        <li>En <strong>Key</strong> escribe: <code className="bg-slate-200 px-1 py-0.5 rounded font-mono font-bold">MONGODB_URI</code></li>
+                        <li>En <strong>Value</strong> pega tu string de Atlas: <br/><code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px] block mt-1 break-all">mongodb+srv://user:pass@cluster.mongodb.net/h2derm</code></li>
+                        <li>En MongoDB Atlas &gt; <em>Network Access</em> &gt; asegúrate de tener <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">0.0.0.0/0</code> habilitado.</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-2 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleRetryMongo}
+                    disabled={isRetryingMongo}
+                    className="flex-1 bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {isRetryingMongo ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isRetryingMongo ? 'Probando Conexión...' : 'Probar / Reintentar Conexión'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowMongoModal(false)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs py-2.5 px-4 rounded-xl cursor-pointer"
+                  >
+                    Entendido
+                  </button>
+                </div>
               </div>
             </div>
           )}

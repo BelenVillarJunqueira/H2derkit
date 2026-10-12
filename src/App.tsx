@@ -77,18 +77,7 @@ export default function App() {
       setIsTrackingOpen(true);
     }
 
-    // 1. Fetch official stored content & media from the server (critical for Render deployment & shared links)
-    fetchServerContent().then((serverContent) => {
-      if (serverContent) setContent(serverContent);
-    });
-
-    fetchServerMedia().then((serverMedia) => {
-      if (serverMedia) setMedia(serverMedia);
-    });
-
-    fetchServerGateways();
-
-    // 2. Load persistent media and content from IndexedDB if available locally
+    // 1. Load persistent media and content from local IndexedDB first for instant rendering
     getMediaFromIndexedDB().then((indexedMedia) => {
       if (indexedMedia && Array.isArray(indexedMedia) && indexedMedia.length > 0) {
         setMedia(indexedMedia);
@@ -100,12 +89,22 @@ export default function App() {
         const localContent = getStoreContent();
         const indexedTime = (indexedContent as any).updatedAt || 0;
         const localTime = (localContent as any).updatedAt || 0;
-        // Only use indexedContent if it is newer or equal
         if (indexedTime >= localTime) {
           setContent(indexedContent);
         }
       }
     });
+
+    // 2. Fetch authoritative stored content & media from server & MongoDB Atlas
+    fetchServerContent().then((serverContent) => {
+      if (serverContent) setContent(serverContent);
+    });
+
+    fetchServerMedia().then((serverMedia) => {
+      if (serverMedia) setMedia(serverMedia);
+    });
+
+    fetchServerGateways();
 
     const handleContentUpdate = (e: CustomEvent<StoreContent>) => {
       setContent(e.detail);

@@ -25,7 +25,7 @@ export const DEFAULT_CONTENT: StoreContent = {
   brandName: 'H2derm',
   productKicker: 'H2DERM DERMA-LABS · TRATAMIENTO PROFESIONAL DE ALTA GAMA',
   productTitle: 'H2derm® PROFESIONAL KIT — Rutina Completa Rostro & Piel Renovada',
-  productTagline: 'Fórmula dermocosmética avanzada desarrollada para aliviar piel seca y con picazón, restaurar la barrera lipídica, aclarar manchas persistentes y aportar luminosidad inmediata en 14 días.',
+  productTagline: 'Fórmula dermocosmética avanzada desarrollada para aliviar piel seca y con picazón, restaurar la barrera lipídica, aclarar manchas persistentes y aportar luminosidad inmediata en 14 días. Imagenes ilustrativas.',
   ratingScore: 4.9,
   ratingCount: 2847,
   stockRemaining: 7,

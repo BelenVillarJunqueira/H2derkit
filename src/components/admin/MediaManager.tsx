@@ -19,7 +19,8 @@ import {
   getStoreMedia, 
   saveStoreMedia, 
   DEFAULT_MEDIA, 
-  getMediaFromIndexedDB 
+  getMediaFromIndexedDB,
+  uploadImageToServer 
 } from '../../services/storage';
 
 // High-performance client-side compressor to guarantee photos fit in browser storage
@@ -123,8 +124,9 @@ export const MediaManager: React.FC = () => {
       }
 
       const { url, sizeKb } = await compressMediaFile(file);
-      setUploadedUrl(url);
-      setFileSizeInfo(`Archivo optimizado listo: ${sizeKb} KB`);
+      const serverUrl = await uploadImageToServer(url, 'carousel');
+      setUploadedUrl(serverUrl);
+      setFileSizeInfo(`Archivo optimizado en servidor listo: ${sizeKb} KB`);
       setIsUploading(false);
     } catch (err) {
       alert('Error al procesar el archivo. Intenta con otra imagen o video.');

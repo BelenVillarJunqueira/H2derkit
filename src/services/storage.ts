@@ -61,9 +61,10 @@ export const DEFAULT_CONTENT: StoreContent = {
       salePrice: 62200,
       discountPercentage: 48,
       savings: 57600,
-      freeGift: '',
+      freeGift: '🎁 REGALO: Neceser Térmico Edición Limitada ($15.000 valor)',
       features: [
         '2 Cajas completas (8 productos en total)',
+        'Neceser Térmico de lujo sin cargo',
         'Envío Prioritario Express en 24/48hs',
         'Garantía de Satisfacción Total 30 Días'
       ]
@@ -78,9 +79,10 @@ export const DEFAULT_CONTENT: StoreContent = {
       salePrice: 75400,
       discountPercentage: 58,
       savings: 104300,
-      freeGift: '',
+      freeGift: '🎁 REGALO: Rodillo Facial Cuarzo Rosa + Neceser de Lujo',
       features: [
         '3 Cajas completas (12 productos en total)',
+        'Set Doble de Regalos Exclusivos',
         'Despacho y Envío VIP Prioritario',
         'Garantía Extendida & Soporte Dermocosmético'
       ]
@@ -357,11 +359,13 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
 export const DEFAULT_GATEWAYS: PaymentGatewaysSettings = {
   mercadoPago: {
     enabled: true,
-    publicKey: 'APP_USR-78294105-9238-410a-b851-9310842019ab',
-    accessToken: 'APP_USR-8419205810294820-031920-84a92b0c1e839210-92840192',
+    publicKey: '',
+    accessToken: '',
     mode: 'production',
     maxInstallments: 6,
-    offerCuotasSinInteres: true
+    offerCuotasSinInteres: true,
+    directPaymentLink: '',
+    packLinks: {}
   },
   contraentrega: {
     enabled: true,
@@ -474,7 +478,7 @@ export const DEFAULT_ORDERS: OrderItem[] = [
       {
         status: 'preparing',
         title: 'Embalaje de 3 Kits Completos',
-        description: 'Preparando paquete para envío .',
+        description: 'Se agregaron los regalos Rodillo de Cuarzo y Neceser de Lujo.',
         timestamp: '05/10 08:30 hs'
       },
       {
@@ -664,6 +668,78 @@ export const saveStoreContent = (content: StoreContent): void => {
   // Guarantee unlimited image storage persistence
   saveContentToIndexedDB(contentWithTimestamp);
   window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: contentWithTimestamp }));
+
+  // Asynchronously send to server to persist permanently for all users & Render deployment
+  fetch('/api/store/content', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(contentWithTimestamp)
+  }).then(async (res) => {
+    if (res.ok) {
+      const data = await res.json();
+      if (data.content) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(data.content));
+        saveContentToIndexedDB(data.content);
+        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: data.content }));
+      }
+    }
+  }).catch(() => {});
+
+  fetch('/api/store/save-defaults', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: contentWithTimestamp })
+  }).catch(() => {});
+};
+
+// Fetch latest content from server (Render deployment / shared users)
+export const fetchServerContent = async (): Promise<StoreContent | null> => {
+  try {
+    const res = await fetch('/api/store/content');
+    if (res.ok) {
+      const serverContent = await res.json();
+      if (serverContent && serverContent.brandName) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(serverContent));
+        saveContentToIndexedDB(serverContent);
+        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: serverContent }));
+        return serverContent;
+      }
+    }
+  } catch {}
+  return null;
+};
+
+// Fetch latest media from server (Render deployment / shared users)
+export const fetchServerMedia = async (): Promise<MediaItem[] | null> => {
+  try {
+    const res = await fetch('/api/store/media');
+    if (res.ok) {
+      const serverMedia = await res.json();
+      if (Array.isArray(serverMedia) && serverMedia.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(serverMedia));
+        saveMediaToIndexedDB(serverMedia);
+        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: serverMedia }));
+        return serverMedia;
+      }
+    }
+  } catch {}
+  return null;
+};
+
+// Fetch latest payment gateways from server
+export const fetchServerGateways = async (): Promise<PaymentGatewaysSettings | null> => {
+  try {
+    const res = await fetch('/api/store/gateways');
+    if (res.ok) {
+      const serverGateways = await res.json();
+      if (serverGateways && serverGateways.mercadoPago) {
+        localStorage.setItem(STORAGE_KEYS.GATEWAYS, JSON.stringify(serverGateways));
+        window.dispatchEvent(new CustomEvent('h2derm_gateways_updated', { detail: serverGateways }));
+        return serverGateways;
+      }
+    }
+  } catch {}
+  return null;
 };
 
 // Cart State Persistence
@@ -720,6 +796,28 @@ export const saveStoreMedia = (media: MediaItem[]): void => {
   // Always persist in IndexedDB for large media support
   saveMediaToIndexedDB(media);
   window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: media }));
+
+  // Asynchronously sync to server
+  fetch('/api/store/media', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(media)
+  }).then(async (res) => {
+    if (res.ok) {
+      const data = await res.json();
+      if (data.media) {
+        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(data.media));
+        saveMediaToIndexedDB(data.media);
+        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: data.media }));
+      }
+    }
+  }).catch(() => {});
+
+  fetch('/api/store/save-defaults', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ media })
+  }).catch(() => {});
 };
 
 export const getStoreReviews = (): ReviewItem[] => {
@@ -874,6 +972,183 @@ export const getPaymentGateways = (): PaymentGatewaysSettings => {
 export const savePaymentGateways = (gateways: PaymentGatewaysSettings): void => {
   localStorage.setItem(STORAGE_KEYS.GATEWAYS, JSON.stringify(gateways));
   window.dispatchEvent(new CustomEvent('h2derm_gateways_updated', { detail: gateways }));
+
+  fetch('/api/store/gateways', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(gateways)
+  }).catch(() => {});
+
+  fetch('/api/store/save-defaults', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gateways })
+  }).catch(() => {});
+};
+
+// Upload image to server filesystem so it persists universally on Render and all devices
+export const uploadImageToServer = async (fileOrBase64: File | string, prefix = 'img'): Promise<string> => {
+  let base64String = '';
+  if (typeof fileOrBase64 === 'string') {
+    base64String = fileOrBase64;
+  } else {
+    base64String = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_DIM = 1400;
+          let { width, height } = img;
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) {
+              height = Math.round((height * MAX_DIM) / width);
+              width = MAX_DIM;
+            } else {
+              width = Math.round((width * MAX_DIM) / height);
+              height = MAX_DIM;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(fileOrBase64);
+    });
+  }
+
+  // If already a server relative URL (e.g. /uploads/...), return as is
+  if (base64String.startsWith('/uploads/')) return base64String;
+
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64String, prefix })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url) return data.url;
+    }
+  } catch (err) {
+    console.warn('Server upload failed, falling back to local storage URL:', err);
+  }
+
+  return base64String;
+};
+
+// MERCADO PAGO: Checkout Pro Preference Request
+export interface CreatePreferenceParams {
+  packId?: string;
+  packTitle: string;
+  unitPrice: number;
+  quantity: number;
+  orderId: string;
+  payer: {
+    name: string;
+    email: string;
+    phone: string;
+    street: string;
+    number: string;
+    city: string;
+    zipCode: string;
+  };
+  returnUrl?: string;
+}
+
+export const createMercadoPagoPreference = async (params: CreatePreferenceParams): Promise<{
+  success: boolean;
+  init_point?: string;
+  preferenceId?: string;
+  error?: string;
+  message?: string;
+  mode?: string;
+}> => {
+  try {
+    const res = await fetch('/api/mercadopago/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    return {
+      success: false,
+      error: 'network_error',
+      message: 'No se pudo conectar con el servidor para iniciar Mercado Pago.'
+    };
+  }
+};
+
+// Sync all local configurations, media, and images directly to Render server files
+export const syncAllToServer = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    const content = getStoreContent();
+    const media = getStoreMedia();
+    const gateways = getPaymentGateways();
+
+    const [resContent, resMedia, resGateways, resDefaults] = await Promise.all([
+      fetch('/api/store/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      }),
+      fetch('/api/store/media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(media)
+      }),
+      fetch('/api/store/gateways', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gateways)
+      }),
+      fetch('/api/store/save-defaults', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, media, gateways })
+      })
+    ]);
+
+    if (resContent.ok) {
+      const dataContent = await resContent.json();
+      if (dataContent.content) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(dataContent.content));
+        saveContentToIndexedDB(dataContent.content);
+        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: dataContent.content }));
+      }
+    }
+
+    if (resMedia.ok) {
+      const dataMedia = await resMedia.json();
+      if (dataMedia.media) {
+        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(dataMedia.media));
+        saveMediaToIndexedDB(dataMedia.media);
+        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: dataMedia.media }));
+      }
+    }
+
+    return { 
+      success: true, 
+      message: '¡Toda la tienda (imágenes, textos y pasarelas) se sincronizó con éxito en el servidor de Render!' 
+    };
+  } catch (err: any) {
+    return { 
+      success: false, 
+      message: 'Error al sincronizar con el servidor: ' + (err.message || 'Desconocido') 
+    };
+  }
 };
 
 export const getAnalytics = (): StoreAnalytics => {

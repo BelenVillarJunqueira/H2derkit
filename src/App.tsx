@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React, { useState, useEffect } from 'react';
 import { 
   StoreContent, 
@@ -16,6 +11,9 @@ import {
   getStoreReviews, 
   getMediaFromIndexedDB,
   getContentFromIndexedDB,
+  fetchServerContent,
+  fetchServerMedia,
+  fetchServerGateways,
   getStoredCart,
   saveStoredCart,
   CartState,
@@ -65,14 +63,32 @@ export default function App() {
     // Record visit on initial mount
     recordVisit();
 
-    // Check if URL has #admin or #seguimiento
+    // Check if URL has #admin or #seguimiento or Mercado Pago callback
     if (window.location.hash === '#admin') {
       setIsAdminOpen(true);
     } else if (window.location.hash.startsWith('#tracking')) {
       setIsTrackingOpen(true);
     }
 
-    // Load persistent media and content from IndexedDB if available
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('payment_status') === 'approved' || searchParams.get('status') === 'approved') {
+      const orderId = searchParams.get('order_id') || searchParams.get('external_reference');
+      if (orderId) setTrackingInitialCode(orderId);
+      setIsTrackingOpen(true);
+    }
+
+    // 1. Fetch official stored content & media from the server (critical for Render deployment & shared links)
+    fetchServerContent().then((serverContent) => {
+      if (serverContent) setContent(serverContent);
+    });
+
+    fetchServerMedia().then((serverMedia) => {
+      if (serverMedia) setMedia(serverMedia);
+    });
+
+    fetchServerGateways();
+
+    // 2. Load persistent media and content from IndexedDB if available locally
     getMediaFromIndexedDB().then((indexedMedia) => {
       if (indexedMedia && Array.isArray(indexedMedia) && indexedMedia.length > 0) {
         setMedia(indexedMedia);
@@ -84,7 +100,7 @@ export default function App() {
         const localContent = getStoreContent();
         const indexedTime = (indexedContent as any).updatedAt || 0;
         const localTime = (localContent as any).updatedAt || 0;
-        // Only use indexedContent if it is newer or equal (avoid reverting user edits with stale cache)
+        // Only use indexedContent if it is newer or equal
         if (indexedTime >= localTime) {
           setContent(indexedContent);
         }

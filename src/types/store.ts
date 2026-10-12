@@ -128,6 +128,8 @@ export interface PaymentGatewaysSettings {
     mode: 'sandbox' | 'production';
     maxInstallments: number;
     offerCuotasSinInteres: boolean;
+    directPaymentLink?: string;
+    packLinks?: { [packId: string]: string };
   };
   contraentrega: {
     enabled: boolean;

@@ -1,0 +1,234 @@
+{
+    "announcementText": "🔥 OFERTA RELÁMPAGO DE HOY: 3 CUOTAS SIN INTERÉS + ENVÍO GRATIS A TODO EL PAÍS",
+    "announcementSubtext": "PAGA AL RECIBIR O CON MERCADO PAGO · DESPACHO PRIORITARIO EN 24 HORAS",
+    "brandName": "H2derm",
+    "productKicker": "H2DERM DERMA-LABS · TRATAMIENTO PROFESIONAL DE ALTA GAMA",
+    "productTitle": "H2derm® PROFESIONAL KIT — Rutina Completa Rostro & Piel Renovada",
+    "productTagline": "Fórmula dermocosmética avanzada desarrollada para aliviar piel seca y con picazón, restaurar la barrera lipídica, aclarar manchas persistentes y aportar luminosidad inmediata en 14 días.",
+    "ratingScore": 4.9,
+    "ratingCount": 2847,
+    "stockRemaining": 7,
+    "viewersCount": 42,
+    "countdownMinutes": 14,
+    "currencySymbol": "$",
+    "currencyCode": "ARS",
+    "packs": [
+        {
+            "id": "pack-1",
+            "title": "1x KIT ROSTRO H2derm",
+            "subtitle": "Tratamiento Inicial (1 Mes de Renovación)",
+            "quantity": 1,
+            "originalPrice": 59900,
+            "salePrice": 38900,
+            "discountPercentage": 35,
+            "savings": 21000,
+            "features": [
+                "Los 4 productos completos originales",
+                "Envío GRATIS a domicilio asegurado",
+                "Guía clínica de aplicación paso a paso"
+            ]
+        },
+        {
+            "id": "pack-2",
+            "title": "2x KITS ROSTRO H2derm",
+            "subtitle": "Tratamiento Intensivo (2 Meses) o Para Compartir",
+            "badge": "MÁS VENDIDO · 48% OFF",
+            "isPopular": true,
+            "quantity": 2,
+            "originalPrice": 119800,
+            "salePrice": 62200,
+            "discountPercentage": 48,
+            "savings": 57600,
+            "freeGift": "🎁 REGALO: Neceser Térmico Edición Limitada ($15.000 valor)",
+            "features": [
+                "2 Cajas completas (8 productos en total)",
+                "Neceser Térmico de lujo sin cargo",
+                "Envío Prioritario Express en 24/48hs",
+                "Garantía de Satisfacción Total 30 Días"
+            ]
+        },
+        {
+            "id": "pack-3",
+            "title": "3x KITS ROSTRO H2derm",
+            "subtitle": "Máximo Ahorro Familiar o Tratamiento Anual Continuo",
+            "badge": "MEJOR AHORRO · 58% OFF",
+            "quantity": 3,
+            "originalPrice": 179700,
+            "salePrice": 75400,
+            "discountPercentage": 58,
+            "savings": 104300,
+            "freeGift": "🎁 REGALO: Rodillo Facial Cuarzo Rosa + Neceser de Lujo",
+            "features": [
+                "3 Cajas completas (12 productos en total)",
+                "Set Doble de Regalos Exclusivos",
+                "Despacho y Envío VIP Prioritario",
+                "Garantía Extendida & Soporte Dermocosmético"
+            ]
+        }
+    ],
+    "guaranteeDays": 30,
+    "guaranteeTitle": "Garantía Incondicional de 30 Días",
+    "guaranteeText": "Si tras usar el kit durante 30 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.",
+    "shippingPromise": "Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CABA y GBA.",
+    "problemTitle": "¿Tu piel se siente tirante, apagada, con picazón o manchas?",
+    "problemSubtitle": "El 89% de las cremas convencionales solo hidratan la capa exterior temporalmente, evaporándose en pocas horas y dejando la barrera cutánea rota.",
+    "solutionTitle": "La Solución Biotecnológica H2derm",
+    "solutionSubtitle": "Nuestra fórmula multifásica penetra hasta la dermis profunda para restaurar los lípidos esenciales, desinflamar la irritación y reactivar la síntesis natural de colágeno.",
+    "beforeAfterTitle": "Resultados Clínicos Reales en 14 y 28 Días",
+    "beforeAfterSubtitle": "Desliza para ver la transformación real de piel seca, con tirantez y manchas a un rostro radiante, firme y rejuvenecido.",
+    "beforeLabel": "Antes (Día 1)",
+    "afterLabel": "Después (Día 28)",
+    "beforeDescription": "Piel deshidratada, descamación en pómulos, rojez por picazón constante y tono opaco con manchas solares.",
+    "afterDescription": "Barrera restaurada, hidratación continua por 24hs, manchas visiblemente aclaradas y luminosidad natural radiante.",
+    "beforeImage": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=1200&auto=format&fit=crop",
+    "afterImage": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop",
+    "clinicalStats": [
+        {
+            "percentage": "98%",
+            "badge": "Desde el Día 1",
+            "title": "Alivio Inmediato de Picazón y Tirantez",
+            "description": "Calma la irritación y desinflama las zonas ásperas, hidratando sin sensación oleosa."
+        },
+        {
+            "percentage": "94%",
+            "badge": "Día 14 a 21",
+            "title": "Aclarado Visible de Manchas Solares y Tono Parejo",
+            "description": "Gracias a la acción combinada del Bakuchiol y la Rosa Mosqueta de prensado en frío."
+        },
+        {
+            "percentage": "96%",
+            "badge": "Día 28",
+            "title": "Piel Más Luminosa, Tersa y Rejuvenecida",
+            "description": "Efecto lifting natural, rellenado de líneas finas de expresión y brillo saludable."
+        }
+    ],
+    "routineTitle": "Tu Rutina Diaria Completa en 4 Pasos",
+    "routineSubtitle": "Diseñada por expertos para máxima sinergia entre exfoliación botánica, nutrición celular e hidratación profunda.",
+    "routineSteps": [
+        {
+            "number": "01",
+            "title": "Crema Exfoliante Micro-cristalina",
+            "subtitle": "Limpieza profunda y exfoliación suave",
+            "time": "2 a 3 veces por semana",
+            "image": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=800&auto=format&fit=crop",
+            "description": "Elimina células muertas e impurezas sin dañar la barrera lipídica. Prepara la piel para absorber los activos concentrados al 100%.",
+            "benefits": [
+                "Libera poros obstruidos",
+                "Suavidad sedosa al tacto",
+                "Cero irritación o ardor"
+            ]
+        },
+        {
+            "number": "02",
+            "title": "Anti-Age Rosehip & Bakuchiol Serum (50ml)",
+            "subtitle": "Nutrición celular y cuidado específico",
+            "time": "Día y Noche · Gotero dosificador",
+            "image": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop",
+            "description": "El corazón de la fórmula: combina Rosa Mosqueta biológica rica en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.",
+            "benefits": [
+                "Atenúa manchas y líneas finas",
+                "Efecto lifting y luminosidad",
+                "Textura ligera no oleosa"
+            ]
+        },
+        {
+            "number": "03",
+            "title": "Crema Reestructurante Hidratante 24h",
+            "subtitle": "Hidratación que dura todo el día",
+            "time": "Diariamente tras el sérum",
+            "image": "https://images.unsplash.com/photo-1608248597359-00122e232938?q=80&w=800&auto=format&fit=crop",
+            "description": "Sella la humedad esencial en las capas profundas. Elimina por completo la picazón, descamación y sensación de tirantez desde la primera aplicación.",
+            "benefits": [
+                "Barrera protectora reforzada",
+                "Calma picazón y rojez al instante",
+                "Acabado mate aterciopelado"
+            ]
+        },
+        {
+            "number": "04",
+            "title": "Emulsión Bifásica Hidratante Rostro & Escote",
+            "subtitle": "El kit que tu cuerpo y piel necesitan",
+            "time": "Uso diario y post-ducha",
+            "image": "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop",
+            "description": "Completa la rutina para unificar el tono y luminosidad no solo en la cara sino en el cuello, escote y zonas resecas del cuerpo.",
+            "benefits": [
+                "Cuidado integral rostro y cuello",
+                "Antioxidantes activos",
+                "Piel tersa y radiante 24/7"
+            ]
+        }
+    ],
+    "problemItems": [
+        {
+            "problemName": "Piel Seca y Tirantez",
+            "problemDescription": "La capa hidrolipídica pierde agua transepidérmica, causando sensación de cartón y grietas microscópicas.",
+            "solutionName": "Triple Ácido Hialurónico",
+            "solutionDescription": "Fija 1.000 veces su peso en agua en capas profundas."
+        },
+        {
+            "problemName": "Picazón y Rojez Constante",
+            "problemDescription": "La barrera protectora rota deja expuestas las terminaciones nerviosas ante cualquier roce o cambio de clima.",
+            "solutionName": "Ceramidas & Micro-nutrientes",
+            "solutionDescription": "Calman y desinflaman el enrojecimiento en minutos."
+        },
+        {
+            "problemName": "Manchas y Tono Desparejo",
+            "problemDescription": "Hiperpigmentación por radiación solar, daño oxidativo o marcas residuales que envejecen el rostro.",
+            "solutionName": "Bakuchiol 1% + Rosa Mosqueta",
+            "solutionDescription": "Inhibe la melanina y aclara progresivamente."
+        },
+        {
+            "problemName": "Piel Apagada y Envejecida",
+            "problemDescription": "Células muertas acumuladas y falta de nutrición celular que restan brillo y elasticidad.",
+            "solutionName": "Exfoliación Micro-cristalina",
+            "solutionDescription": "Luminosidad glow natural desde la primera semana."
+        }
+    ],
+    "activeIngredients": [
+        {
+            "name": "Bakuchiol 1.0%",
+            "type": "Retinol Botánico Puro",
+            "benefit": "Estimula la renovación celular y la síntesis de colágeno sin descamación, enrojecimiento ni fotosensibilidad.",
+            "tag": "Antiedad & Manchas"
+        },
+        {
+            "name": "Rosa Mosqueta Orgánica",
+            "type": "Prensado en Frío",
+            "benefit": "Rica en ácidos grasos esenciales omega 3, 6 y 9. Cicatriza, regenera tejidos dañados y atenúa manchas oscuras.",
+            "tag": "Regenerador Celular"
+        },
+        {
+            "name": "Ácido Hialurónico Triple",
+            "type": "Bajo, Medio y Alto Peso Molecular",
+            "benefit": "Hidrata desde la superficie hasta las capas dérmicas más profundas, rellenando líneas de expresión y sequedad.",
+            "tag": "Hidratación 24H"
+        },
+        {
+            "name": "Niacinamida 5.0%",
+            "type": "Vitamina B3 Activa",
+            "benefit": "Refuerza la barrera cutánea frente a la polución, calma la picazón de forma inmediata y unifica el tono facial.",
+            "tag": "Anti-irritación"
+        },
+        {
+            "name": "Ceramidas NP & Fitoesteroles",
+            "type": "Lípidos Idénticos a la Piel",
+            "benefit": "Reparan el cemento intercelular, frenando la pérdida de agua y sellando los nutrientes en el rostro.",
+            "tag": "Barrera Cutánea"
+        },
+        {
+            "name": "Vitamina C & E Liposomal",
+            "type": "Antioxidantes de Alta Estabilidad",
+            "benefit": "Neutralizan los radicales libres, iluminan la tez apagada y devuelven el brillo juvenil radiante.",
+            "tag": "Máxima Luminosidad"
+        }
+    ],
+    "dermatologistDoctorName": "Dra. Mariana Estévez · Médica Dermatóloga (M.N. 128.490)",
+    "dermatologistQuote": "«H2derm logra lo que pocos kits consiguen: combinar el poder antiedad del Bakuchiol sin resecar, y la hidratación intensiva sin sobrecargar la piel. Es la rutina más equilibrada y eficaz que he testeado para pacientes con piel seca, manchas y pérdida de luminosidad.»",
+    "dermatologistPhoto": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop",
+    "shippingEstimatedDays": "24 a 48 horas en todo el país",
+    "freeShippingThresholdText": "Envío 100% Bonificado Sin Cargo",
+    "whatsappNumber": "+54 9 11 4920-8842",
+    "supportEmail": "contacto@h2derm.shop",
+    "supportPhone": "0800-444-H2DERM (4233)",
+    "shippingCarriersText": "Andreani · Correo Argentino · Moto Express en el día"
+}

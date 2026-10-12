@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Lock, 
   X, 
@@ -12,14 +12,30 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Cloud,
+  Download,
+  Upload,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { OrdersManager } from './OrdersManager';
-import { ContentEditor, BeforeAfterManager } from './ContentEditor';
+import { ContentEditor } from './ContentEditor';
+import { BeforeAfterManager } from './BeforeAfterManager';
 import { MediaManager } from './MediaManager';
 import { PaymentGatewaysConfig } from './PaymentGatewaysConfig';
 import { AnalyticsPanel } from './AnalyticsPanel';
-import { getAdminPin, setAdminPin } from '../../services/storage';
+import { 
+  getAdminPin, 
+  setAdminPin,
+  syncAllToServer,
+  getStoreContent,
+  getStoreMedia,
+  getPaymentGateways,
+  saveStoreContent,
+  saveStoreMedia,
+  savePaymentGateways
+} from '../../services/storage';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -40,12 +56,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newPin, setNewPin] = useState('');
   const [pinChangedSuccess, setPinChangedSuccess] = useState(false);
 
+  // Sync to Render state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
+  const [syncSuccess, setSyncSuccess] = useState(false);
+  const backupFileInputRef = useRef<HTMLInputElement>(null);
+
   if (!isOpen) return null;
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const currentPin = getAdminPin();
-    if (pinInput === currentPin || pinInput === '2222') {
+    if (pinInput === currentPin || pinInput === 'admin123') {
       setIsAuthenticated(true);
       setPinError(false);
     } else {
@@ -64,6 +86,56 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setNewPin('');
       }, 1800);
     }
+  };
+
+  const handleSyncToRender = async () => {
+    setIsSyncing(true);
+    setSyncMessage('');
+    const res = await syncAllToServer();
+    setIsSyncing(false);
+    setSyncSuccess(res.success);
+    setSyncMessage(res.message);
+    setTimeout(() => {
+      setSyncMessage('');
+    }, 4500);
+  };
+
+  const handleDownloadBackup = () => {
+    const backupData = {
+      version: 'h2derm_v1',
+      exportedAt: new Date().toISOString(),
+      content: getStoreContent(),
+      media: getStoreMedia(),
+      gateways: getPaymentGateways()
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `h2derm-tienda-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const raw = event.target?.result as string;
+        const parsed = JSON.parse(raw);
+        if (parsed.content) saveStoreContent(parsed.content);
+        if (parsed.media) saveStoreMedia(parsed.media);
+        if (parsed.gateways) savePaymentGateways(parsed.gateways);
+        await syncAllToServer();
+        alert('¡Copia de seguridad restaurada y guardada en el servidor con éxito!');
+        window.location.reload();
+      } catch (err) {
+        alert('Error al leer el archivo de copia de seguridad. Verifica que sea un archivo JSON válido.');
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -109,13 +181,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     setPinInput(e.target.value);
                     setPinError(false);
                   }}
-                  placeholder="Ingresa tu clave de acceso"
+                  placeholder="PIN o Clave (por defecto: admin123)"
                   className="w-full text-center text-lg tracking-widest p-3.5 bg-slate-50 rounded-2xl border border-slate-300 font-mono font-bold focus:ring-2 focus:ring-purple-700 outline-none"
                 />
                 {pinError && (
                   <span className="text-xs font-bold text-rose-600 block mt-1.5">
-                    Clave incorrecta.
-
+                    Clave incorrecta. Recuerda que por defecto es: admin123
                   </span>
                 )}
               </div>
@@ -128,6 +199,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </form>
 
+            <div className="pt-2 text-[11px] text-slate-400">
+              💡 Clave inicial de fábrica: <strong className="text-purple-700 font-mono">admin123</strong>
+            </div>
           </div>
         </div>
       ) : (
@@ -153,7 +227,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <button
+                type="button"
+                onClick={handleSyncToRender}
+                disabled={isSyncing}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                title="Sincronizar y guardar todas las fotos y cambios para que se vean universalmente en Render"
+              >
+                {isSyncing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Cloud className="w-3.5 h-3.5" />
+                )}
+                <span>{isSyncing ? 'Guardando en Render...' : 'Guardar para Render'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadBackup}
+                className="text-xs text-slate-700 hover:text-purple-800 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 hidden md:flex items-center gap-1 cursor-pointer"
+                title="Descargar copia de seguridad en JSON de tus fotos y configuración"
+              >
+                <Download className="w-3.5 h-3.5 text-slate-600" />
+                <span>Backup JSON</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => backupFileInputRef.current?.click()}
+                className="text-xs text-slate-700 hover:text-purple-800 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 hidden md:flex items-center gap-1 cursor-pointer"
+                title="Restaurar copia de seguridad desde un archivo JSON"
+              >
+                <Upload className="w-3.5 h-3.5 text-slate-600" />
+                <span>Cargar Backup</span>
+              </button>
+              <input
+                ref={backupFileInputRef}
+                type="file"
+                accept=".json"
+                onChange={handleUploadBackup}
+                className="hidden"
+              />
+
               <button
                 onClick={() => setShowChangePin(true)}
                 className="text-xs text-slate-600 hover:text-purple-700 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
@@ -172,6 +288,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </div>
           </header>
+
+          {/* Sync status banner */}
+          {syncMessage && (
+            <div className={`px-4 sm:px-8 py-2.5 text-xs font-bold flex items-center justify-between border-b ${
+              syncSuccess ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                {syncSuccess ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+                <span>{syncMessage}</span>
+              </div>
+              <button onClick={() => setSyncMessage('')} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Navigation Tabs */}
           <nav aria-label="Secciones de administración" className="bg-white border-b border-slate-200 px-4 sm:px-8 overflow-x-auto scrollbar-none">

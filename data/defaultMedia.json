@@ -1,0 +1,53 @@
+[
+    {
+        "id": "media-video-1",
+        "type": "video",
+        "url": "https://assets.mixkit.co/videos/preview/mixkit-woman-applying-skincare-cream-on-her-face-41138-large.mp4",
+        "title": "Demostración de Rutina H2derm en Vivo",
+        "badge": "VIDEO OFICIAL · EN ACCIÓN",
+        "thumbnail": "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=900&auto=format&fit=crop",
+        "duration": "0:35"
+    },
+    {
+        "id": "media-1",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&auto=format&fit=crop",
+        "title": "Kit H2derm Profesional Completo (Caja & 4 Productos)",
+        "badge": "KIT COMPLETO"
+    },
+    {
+        "id": "media-2",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1200&auto=format&fit=crop",
+        "title": "Anti-age Rosehip & Bakuchiol Serum 50ml Gotero",
+        "badge": "PASO 2 · SÉRUM INTENSIVO"
+    },
+    {
+        "id": "media-3",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1608248597359-00122e232938?q=80&w=1200&auto=format&fit=crop",
+        "title": "H2derm Crema Reestructurante Hidratante 24h",
+        "badge": "PASO 3 · HIDRATACIÓN DÉRMICA"
+    },
+    {
+        "id": "media-4",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=1200&auto=format&fit=crop",
+        "title": "H2derm Crema Exfoliante Suave de Micro-cristales",
+        "badge": "PASO 1 · LIMPIEZA PROFUNDA"
+    },
+    {
+        "id": "media-5",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1512290900672-1f486518a09f?q=80&w=1200&auto=format&fit=crop",
+        "title": "Textura Sedosa y Absorción Inmediata Sin Sensación Grasa",
+        "badge": "ACABADO LUMINOSO"
+    },
+    {
+        "id": "media-6",
+        "type": "image",
+        "url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200&auto=format&fit=crop",
+        "title": "Certificación y Respaldo Dermatológico en Clínica",
+        "badge": "APROBADO POR DERMATÓLOGOS"
+    }
+]

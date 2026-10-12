@@ -8,13 +8,17 @@ import {
   Key, 
   ShieldCheck,
   Percent,
-  HelpCircle
+  HelpCircle,
+  ExternalLink,
+  Sparkles,
+  Link2
 } from 'lucide-react';
 import { PaymentGatewaysSettings } from '../../types/store';
-import { getPaymentGateways, savePaymentGateways, DEFAULT_GATEWAYS } from '../../services/storage';
+import { getPaymentGateways, savePaymentGateways, DEFAULT_GATEWAYS, getStoreContent } from '../../services/storage';
 
 export const PaymentGatewaysConfig: React.FC = () => {
   const [gateways, setGateways] = useState<PaymentGatewaysSettings>(getPaymentGateways());
+  const [storeContent] = useState(() => getStoreContent());
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
@@ -106,72 +110,177 @@ export const PaymentGatewaysConfig: React.FC = () => {
           </label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">
-              Public Key (Clave Pública de Desarrollador):
-            </label>
-            <input
-              type="text"
-              value={gateways.mercadoPago.publicKey}
-              onChange={(e) => setGateways({
-                ...gateways,
-                mercadoPago: { ...gateways.mercadoPago, publicKey: e.target.value }
-              })}
-              placeholder="APP_USR-xxxxxx"
-              className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 font-mono"
-            />
+        {/* Informative banner on Dinero en Cuenta & Mercado Pago */}
+        <div className="bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 p-4 rounded-2xl text-xs text-sky-950 space-y-2">
+          <div className="flex items-center gap-2 font-black text-sm text-sky-900">
+            <Sparkles className="w-4 h-4 text-sky-600" />
+            <span>Cobro con Dinero en Cuenta, Débito y Cuotas con Mercado Pago</span>
+          </div>
+          <p className="text-slate-700 leading-relaxed">
+            Puedes configurar Mercado Pago de <b>dos maneras</b>:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="bg-white p-3 rounded-xl border border-sky-200">
+              <strong className="text-sky-900 block font-bold mb-1">Opción A: Links de Pago (Recomendada y más fácil)</strong>
+              <p className="text-[11px] text-slate-600">
+                En tu app de Mercado Pago creas un <b>Link de Pago</b> (Cobrar con link ➔ pones el precio ➔ copiar link). Tus clientes se redirigen automáticamente y pueden pagar directamente en la app con su <b>saldo en cuenta (dinero en cuenta)</b>, débito o tarjetas.
+              </p>
+            </div>
+            <div className="bg-white p-3 rounded-xl border border-sky-200">
+              <strong className="text-sky-900 block font-bold mb-1">Opción B: Checkout Pro API (Access Token)</strong>
+              <p className="text-[11px] text-slate-600">
+                Pega tu <b>Access Token</b> de desarrollador (<code className="bg-slate-100 px-1 rounded font-mono">APP_USR-...</code>). El sistema genera la pasarela oficial automáticamente y permite al cliente identificarse con su cuenta de Mercado Pago.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 1. Pack Specific Links */}
+        <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-2">
+            <Link2 className="w-4 h-4 text-purple-700" />
+            <h5 className="font-extrabold text-xs text-slate-900 uppercase tracking-wide">
+              Links de Pago Directos de Mercado Pago por Pack (mpago.la)
+            </h5>
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Copia el link de cobro desde la app de Mercado Pago para cada monto y pégalo aquí. Al hacer clic en comprar, el cliente irá directo a abonar dicho pack:
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 pt-1">
+            {storeContent.packs.map((pack) => (
+              <div key={pack.id} className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="min-w-[180px]">
+                  <strong className="text-slate-900 block font-bold">{pack.title}</strong>
+                  <span className="text-[11px] text-purple-800 font-extrabold">
+                    Precio: ${pack.salePrice.toLocaleString('es-AR')}
+                  </span>
+                </div>
+
+                <div className="flex-1 w-full">
+                  <input
+                    type="url"
+                    value={gateways.mercadoPago.packLinks?.[pack.id] || ''}
+                    onChange={(e) => {
+                      const newPackLinks = { ...(gateways.mercadoPago.packLinks || {}), [pack.id]: e.target.value };
+                      setGateways({
+                        ...gateways,
+                        mercadoPago: {
+                          ...gateways.mercadoPago,
+                          packLinks: newPackLinks
+                        }
+                      });
+                    }}
+                    placeholder={`https://mpago.la/xxxx (Link para ${pack.title})`}
+                    className="w-full p-2 bg-slate-50 rounded-lg border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-purple-600 outline-none"
+                  />
+                </div>
+              </div>
+            ))}
+
+            <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="min-w-[180px]">
+                <strong className="text-slate-900 block font-bold">Link General (Comodín)</strong>
+                <span className="text-[11px] text-slate-500">
+                  Aplica si no configuras los específicos
+                </span>
+              </div>
+
+              <div className="flex-1 w-full">
+                <input
+                  type="url"
+                  value={gateways.mercadoPago.directPaymentLink || ''}
+                  onChange={(e) => setGateways({
+                    ...gateways,
+                    mercadoPago: { ...gateways.mercadoPago, directPaymentLink: e.target.value }
+                  })}
+                  placeholder="https://mpago.la/xxxx (Link general opcional)"
+                  className="w-full p-2 bg-slate-50 rounded-lg border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-purple-600 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. API Credentials (Checkout Pro) */}
+        <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-2">
+            <Key className="w-4 h-4 text-purple-700" />
+            <h5 className="font-extrabold text-xs text-slate-900 uppercase tracking-wide">
+              Credenciales de API Checkout Pro (Opcional si usas links)
+            </h5>
           </div>
 
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">
-              Access Token (Token de Acceso Privado):
-            </label>
-            <input
-              type="password"
-              value={gateways.mercadoPago.accessToken}
-              onChange={(e) => setGateways({
-                ...gateways,
-                mercadoPago: { ...gateways.mercadoPago, accessToken: e.target.value }
-              })}
-              placeholder="APP_USR-xxxxxx-xxxxxx"
-              className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 font-mono"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Access Token (Token Privado APP_USR-...):
+              </label>
+              <input
+                type="password"
+                value={gateways.mercadoPago.accessToken}
+                onChange={(e) => setGateways({
+                  ...gateways,
+                  mercadoPago: { ...gateways.mercadoPago, accessToken: e.target.value }
+                })}
+                placeholder="APP_USR-xxxxxx-xxxxxx"
+                className="w-full p-2.5 bg-white rounded-xl border border-slate-300 font-mono"
+              />
+              <span className="text-[10px] text-slate-500 mt-1 block">
+                Obtenlo desde <a href="https://www.mercadopago.com.ar/developers/panel/credentials" target="_blank" rel="noopener noreferrer" className="text-purple-700 underline font-semibold">Mercado Pago Developers</a>.
+              </span>
+            </div>
 
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">
-              Modo de Operación:
-            </label>
-            <select
-              value={gateways.mercadoPago.mode}
-              onChange={(e) => setGateways({
-                ...gateways,
-                mercadoPago: { ...gateways.mercadoPago, mode: e.target.value as 'production' | 'sandbox' }
-              })}
-              className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 font-bold"
-            >
-              <option value="production">🟢 Producción (Cobro Real a Clientes)</option>
-              <option value="sandbox">🟡 Sandbox (Modo de Prueba / Testing)</option>
-            </select>
-          </div>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Public Key (Clave Pública):
+              </label>
+              <input
+                type="text"
+                value={gateways.mercadoPago.publicKey}
+                onChange={(e) => setGateways({
+                  ...gateways,
+                  mercadoPago: { ...gateways.mercadoPago, publicKey: e.target.value }
+                })}
+                placeholder="APP_USR-xxxxxx"
+                className="w-full p-2.5 bg-white rounded-xl border border-slate-300 font-mono"
+              />
+            </div>
 
-          <div>
-            <label className="font-bold text-slate-700 block mb-1">
-              Máximo de Cuotas Ofrecidas:
-            </label>
-            <select
-              value={gateways.mercadoPago.maxInstallments}
-              onChange={(e) => setGateways({
-                ...gateways,
-                mercadoPago: { ...gateways.mercadoPago, maxInstallments: Number(e.target.value) }
-              })}
-              className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300"
-            >
-              <option value={3}>3 Cuotas</option>
-              <option value={6}>6 Cuotas</option>
-              <option value={12}>12 Cuotas</option>
-            </select>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Modo de Operación:
+              </label>
+              <select
+                value={gateways.mercadoPago.mode}
+                onChange={(e) => setGateways({
+                  ...gateways,
+                  mercadoPago: { ...gateways.mercadoPago, mode: e.target.value as 'production' | 'sandbox' }
+                })}
+                className="w-full p-2.5 bg-white rounded-xl border border-slate-300 font-bold"
+              >
+                <option value="production">🟢 Producción (Cobro Real a Clientes)</option>
+                <option value="sandbox">🟡 Sandbox (Modo de Prueba / Testing)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Máximo de Cuotas Permitidas:
+              </label>
+              <select
+                value={gateways.mercadoPago.maxInstallments || 6}
+                onChange={(e) => setGateways({
+                  ...gateways,
+                  mercadoPago: { ...gateways.mercadoPago, maxInstallments: Number(e.target.value) }
+                })}
+                className="w-full p-2.5 bg-white rounded-xl border border-slate-300 font-bold"
+              >
+                <option value={3}>Hasta 3 cuotas</option>
+                <option value={6}>Hasta 6 cuotas</option>
+                <option value={12}>Hasta 12 cuotas</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

@@ -28,7 +28,7 @@ import {
   PaymentMethodType, 
   OrderItem 
 } from '../types/store';
-import { createOrder, getPaymentGateways } from '../services/storage';
+import { createOrder, getPaymentGateways, createMercadoPagoPreference } from '../services/storage';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -86,6 +86,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   // Submission state
   const [isProcessing, setIsProcessing] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderItem | null>(null);
+  const [mpRedirectUrl, setMpRedirectUrl] = useState<string>('');
+  const [mpErrorMessage, setMpErrorMessage] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -113,7 +115,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedPack || isCartEmpty) {
@@ -127,54 +129,93 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
 
     setIsProcessing(true);
+    setMpErrorMessage('');
 
-    setTimeout(() => {
-      const order = createOrder({
-        customerName: name.trim(),
-        email: email.trim() || `${phone.replace(/\D/g, '')}@cliente.h2derm.com`,
-        phone: phone.trim(),
-        dni: dni.trim() || 'No especificado',
-        street: street.trim(),
-        number: number.trim() || 'S/N',
-        apartment: apartment.trim() || undefined,
-        city: city.trim(),
-        state: state.trim(),
-        zipCode: zipCode.trim() || '1000',
-        deliveryNotes: deliveryNotes.trim() || undefined,
-        packId: selectedPack.id,
-        packTitle: selectedPack.title,
-        quantity: selectedPack.quantity,
-        unitPrice: selectedPack.salePrice,
-        totalPrice: finalTotal,
-        discountApplied: selectedPack.savings + transferDiscount,
-        paymentMethod,
-        paymentStatus: paymentMethod === 'contraentrega' ? 'pending' : 'paid',
-        shippingStatus: 'confirmed',
-        carrier: 'Andreani Express & Correo Argentino',
-        paymentProofUrl: transferProof || undefined,
-        mercadoPagoDetails: paymentMethod === 'mercadopago' ? {
-          paymentId: `MP-${Date.now()}`,
-          cardLast4: cardNumber ? cardNumber.slice(-4) : '8821',
-          cardBrand: 'Visa / Mastercard',
-          installments
-        } : undefined
+    const order = createOrder({
+      customerName: name.trim(),
+      email: email.trim() || `${phone.replace(/\D/g, '')}@cliente.h2derm.com`,
+      phone: phone.trim(),
+      dni: dni.trim() || 'No especificado',
+      street: street.trim(),
+      number: number.trim() || 'S/N',
+      apartment: apartment.trim() || undefined,
+      city: city.trim(),
+      state: state.trim(),
+      zipCode: zipCode.trim() || '1000',
+      deliveryNotes: deliveryNotes.trim() || undefined,
+      packId: selectedPack.id,
+      packTitle: selectedPack.title,
+      quantity: selectedPack.quantity,
+      unitPrice: selectedPack.salePrice,
+      totalPrice: finalTotal,
+      discountApplied: selectedPack.savings + transferDiscount,
+      paymentMethod,
+      paymentStatus: paymentMethod === 'contraentrega' ? 'pending' : (paymentMethod === 'mercadopago' ? 'pending' : 'paid'),
+      shippingStatus: 'confirmed',
+      carrier: 'Andreani Express & Correo Argentino',
+      paymentProofUrl: transferProof || undefined,
+      mercadoPagoDetails: paymentMethod === 'mercadopago' ? {
+        paymentId: `MP-${Date.now()}`
+      } : undefined
+    });
+
+    // Fire celebratory confetti!
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
       });
+    } catch (err) {
+      console.error(err);
+    }
 
-      // Fire celebratory confetti!
+    if (paymentMethod === 'mercadopago') {
       try {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
+        const mpResult = await createMercadoPagoPreference({
+          packId: selectedPack.id,
+          packTitle: selectedPack.title,
+          unitPrice: finalTotal,
+          quantity: 1,
+          orderId: order.trackingCode,
+          payer: {
+            name: name.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            street: street.trim(),
+            number: number.trim() || '1',
+            city: city.trim(),
+            zipCode: zipCode.trim() || '1000'
+          }
         });
-      } catch (err) {
-        console.error(err);
-      }
 
-      setIsProcessing(false);
-      setCompletedOrder(order);
-      onOrderCompleted(order);
-    }, 1200);
+        setIsProcessing(false);
+        setCompletedOrder(order);
+        onOrderCompleted(order);
+
+        if (mpResult.success && mpResult.init_point) {
+          setMpRedirectUrl(mpResult.init_point);
+          // Redirect user immediately to official Mercado Pago Checkout portal (web/app)
+          window.location.href = mpResult.init_point;
+          return;
+        } else {
+          if (mpResult.message) {
+            setMpErrorMessage(mpResult.message);
+          }
+        }
+      } catch (err: any) {
+        setIsProcessing(false);
+        setCompletedOrder(order);
+        onOrderCompleted(order);
+        setMpErrorMessage('No se pudo establecer la conexión directa con Mercado Pago.');
+      }
+    } else {
+      setTimeout(() => {
+        setIsProcessing(false);
+        setCompletedOrder(order);
+        onOrderCompleted(order);
+      }, 900);
+    }
   };
 
   return (
@@ -243,10 +284,41 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span className="font-bold">{completedOrder.street} {completedOrder.number}, {completedOrder.city}</span>
               </div>
               <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-200">
-                <span>Total Abonado:</span>
+                <span>Total:</span>
                 <span className="text-purple-900">${completedOrder.totalPrice.toLocaleString('es-AR')}</span>
               </div>
             </div>
+
+            {/* Mercado Pago Payment Callout */}
+            {completedOrder.paymentMethod === 'mercadopago' && mpRedirectUrl && (
+              <div className="bg-sky-50 border-2 border-sky-300 rounded-2xl p-4 max-w-md mx-auto text-center space-y-2.5">
+                <div className="flex items-center justify-center gap-2 text-sky-950 font-black text-sm">
+                  <CreditCard className="w-5 h-5 text-sky-600" />
+                  <span>Pagar en Mercado Pago (Dinero en Cuenta o Tarjeta)</span>
+                </div>
+                <p className="text-xs text-sky-800">
+                  Haz clic en el botón a continuación para ir al checkout oficial y abonar con tu saldo en cuenta o tarjetas:
+                </p>
+                <a
+                  href={mpRedirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#009ee3] hover:bg-[#0081ba] text-white font-black text-sm py-3 px-5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Ir a Pagar en Mercado Pago ➔</span>
+                </a>
+              </div>
+            )}
+
+            {completedOrder.paymentMethod === 'mercadopago' && mpErrorMessage && (
+              <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 max-w-md mx-auto text-left text-xs space-y-1 text-amber-900">
+                <p className="font-bold">Aviso sobre Mercado Pago:</p>
+                <p className="text-amber-800 text-[11px]">{mpErrorMessage}</p>
+                <p className="text-amber-700 text-[11px] pt-1">
+                  Tu pedido ya quedó registrado con el código <b>{completedOrder.trackingCode}</b>. Puedes confirmar el pago coordinándolo por WhatsApp a continuación.
+                </p>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="pt-2 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -643,59 +715,52 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       </span>
                     </div>
 
-                    {/* Expanded MP Fields */}
+                    {/* Expanded MP Presentation */}
                     {paymentMethod === 'mercadopago' && (
                       <div className="mt-3 pt-3 border-t border-purple-200/60 space-y-2.5 text-xs">
-                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                          <span>Credencial vinculada: Oficial H2derm</span>
-                          <span className="text-emerald-700 font-bold">● Pasarela Conectada</span>
-                        </div>
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 block mb-0.5">Número de Tarjeta</label>
-                          <input
-                            type="text"
-                            maxLength={19}
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            placeholder="4509 2384 1029 4820"
-                            className="w-full p-2 bg-white rounded-lg border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-purple-600 outline-none"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[11px] font-bold text-slate-700 block mb-0.5">Vencimiento (MM/AA)</label>
-                            <input
-                              type="text"
-                              maxLength={5}
-                              value={cardExpiry}
-                              onChange={(e) => setCardExpiry(e.target.value)}
-                              placeholder="08/29"
-                              className="w-full p-2 bg-white rounded-lg border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-purple-600 outline-none"
-                            />
+                        <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between text-[11px] text-sky-950 font-bold">
+                            <span>Pasarela Oficial Mercado Pago</span>
+                            <span className="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">● Redirección Segura SSL</span>
                           </div>
-                          <div>
-                            <label className="text-[11px] font-bold text-slate-700 block mb-0.5">Código CVV</label>
-                            <input
-                              type="text"
-                              maxLength={4}
-                              value={cardCvv}
-                              onChange={(e) => setCardCvv(e.target.value)}
-                              placeholder="382"
-                              className="w-full p-2 bg-white rounded-lg border border-slate-300 font-mono text-xs focus:ring-2 focus:ring-purple-600 outline-none"
-                            />
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 pt-1">
+                            <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-sky-100">
+                              <span className="text-base">💰</span>
+                              <div>
+                                <strong className="text-slate-900 block font-bold">Dinero en Cuenta</strong>
+                                <span className="text-slate-500 text-[10px]">Paga al instante con tu saldo</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-sky-100">
+                              <span className="text-base">💳</span>
+                              <div>
+                                <strong className="text-slate-900 block font-bold">Débito y Crédito</strong>
+                                <span className="text-slate-500 text-[10px]">Hasta {gateways.mercadoPago.maxInstallments || 6} cuotas sin interés</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-sky-100">
+                              <span className="text-base">⚡</span>
+                              <div>
+                                <strong className="text-slate-900 block font-bold">Mercado Crédito</strong>
+                                <span className="text-slate-500 text-[10px]">Paga en cuotas sin tarjeta</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-sky-100">
+                              <span className="text-base">🛡️</span>
+                              <div>
+                                <strong className="text-slate-900 block font-bold">Protección Total</strong>
+                                <span className="text-slate-500 text-[10px]">Garantía oficial de Mercado Pago</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <label className="text-[11px] font-bold text-slate-700 block mb-0.5">Plan de Cuotas</label>
-                          <select
-                            value={installments}
-                            onChange={(e) => setInstallments(Number(e.target.value))}
-                            className="w-full p-2 bg-white rounded-lg border border-slate-300 text-xs font-semibold text-slate-800"
-                          >
-                            <option value={1}>1 pago de ${subtotal.toLocaleString('es-AR')}</option>
-                            <option value={3}>3 cuotas SIN INTERÉS de ${Math.round(subtotal / 3).toLocaleString('es-AR')}</option>
-                            <option value={6}>6 cuotas de ${Math.round((subtotal * 1.1) / 6).toLocaleString('es-AR')}</option>
-                          </select>
+
+                          <p className="text-[11px] text-sky-900 bg-sky-100/70 p-2 rounded-lg mt-1 font-medium">
+                            👉 Al hacer clic en <b>"Continuar y Pagar en Mercado Pago"</b> a continuación, serás redirigido directamente al portal oficial para ingresar a tu cuenta y pagar con tu <b>saldo disponible</b> o tarjeta.
+                          </p>
                         </div>
                       </div>
                     )}
@@ -857,12 +922,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <button
               type="submit"
               disabled={isProcessing}
-              className="w-full bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 hover:from-purple-900 hover:via-purple-800 hover:to-indigo-900 text-white font-black text-base py-4 px-6 rounded-2xl shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className={`w-full text-white font-black text-base py-4 px-6 rounded-2xl shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 ${
+                paymentMethod === 'mercadopago'
+                  ? 'bg-[#009ee3] hover:bg-[#0081ba] shadow-sky-500/25 ring-2 ring-sky-300'
+                  : 'bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 hover:from-purple-900 hover:via-purple-800 hover:to-indigo-900 shadow-purple-900/25'
+              }`}
             >
               {isProcessing ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Procesando tu pedido de forma segura...
+                  {paymentMethod === 'mercadopago' ? 'Conectando con Mercado Pago...' : 'Procesando tu pedido de forma segura...'}
+                </span>
+              ) : paymentMethod === 'mercadopago' ? (
+                <span className="flex items-center gap-2">
+                  <span>PAGAR CON MERCADO PAGO (SALDO O TARJETA)</span>
+                  <ArrowRight className="w-5 h-5 stroke-[3]" />
                 </span>
               ) : (
                 <span className="flex items-center gap-2">

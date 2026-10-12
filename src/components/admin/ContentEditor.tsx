@@ -24,7 +24,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { StoreContent, RoutineStep, ProblemSolutionItem, ActiveIngredientItem, ClinicalStat } from '../../types/store';
-import { getStoreContent, saveStoreContent, getContentFromIndexedDB, DEFAULT_CONTENT } from '../../services/storage';
+import { getStoreContent, saveStoreContent, getContentFromIndexedDB, uploadImageToServer, DEFAULT_CONTENT } from '../../services/storage';
 
 // Image compressor helper for CMS uploads
 const compressImage = (file: File): Promise<string> => {
@@ -116,9 +116,9 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressedUrl = await compressImage(file);
+      const serverUrl = await uploadImageToServer(file, `step_${index + 1}`);
       const updatedSteps = [...content.routineSteps];
-      updatedSteps[index] = { ...updatedSteps[index], image: compressedUrl };
+      updatedSteps[index] = { ...updatedSteps[index], image: serverUrl };
       const updatedContent = { ...content, routineSteps: updatedSteps };
       setContent(updatedContent);
       saveStoreContent(updatedContent);
@@ -134,10 +134,10 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressedUrl = await compressImage(file);
+      const serverUrl = await uploadImageToServer(file, type);
       const updatedContent = type === 'before' 
-        ? { ...content, beforeImage: compressedUrl }
-        : { ...content, afterImage: compressedUrl };
+        ? { ...content, beforeImage: serverUrl }
+        : { ...content, afterImage: serverUrl };
       setContent(updatedContent);
       saveStoreContent(updatedContent);
       setSavedSuccess(true);
@@ -152,8 +152,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressedUrl = await compressImage(file);
-      const updatedContent = { ...content, dermatologistPhoto: compressedUrl };
+      const serverUrl = await uploadImageToServer(file, 'doctor');
+      const updatedContent = { ...content, dermatologistPhoto: serverUrl };
       setContent(updatedContent);
       saveStoreContent(updatedContent);
       setSavedSuccess(true);
@@ -829,7 +829,7 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
                               freeGift: '',
                               // Also remove gift bullet from features if present
                               features: (updated[idx].features || []).filter(
-                                f => !f.toLowerCase().includes('') && !f.toLowerCase().includes('') && !f.toLowerCase().includes('')
+                                f => !f.toLowerCase().includes('regalo') && !f.toLowerCase().includes('neceser') && !f.toLowerCase().includes('rodillo')
                               )
                             };
                             setContent({ ...content, packs: updated });
@@ -956,7 +956,7 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
                     <div className="flex items-center justify-between">
                       <label className="font-black text-amber-950 flex items-center gap-1.5">
                         <Gift className="w-4 h-4 text-amber-700" />
-                        <span></span>
+                        <span>Regalo Incluido en este Pack:</span>
                       </label>
                       {hasGift && (
                         <button
@@ -1442,4 +1442,3 @@ export const BeforeAfterManager: React.FC = () => {
 };
 
 export default ContentEditor;
-

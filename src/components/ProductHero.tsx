@@ -182,19 +182,19 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
               <ul className="space-y-1.5 text-slate-700">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-700" />
-                  <span><strong>1x Crema Exfoliante Suave</strong> con microcristales purificadores</span>
+                  <span><strong>1x Espuma de limpieza</strong> suave para el rostro</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-700" />
-                  <span><strong>1x Anti-Age Rosehip Serum 50ml</strong> con Rosa Mosqueta & Bakuchiol</span>
+                  <span><strong>1x Serum </strong> con ADN liposomado</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-700" />
-                  <span><strong>1x Crema Reestructurante Hidratante</strong> de absorción dérmica 24h</span>
+                  <span><strong>1x Crema Humectante 24h</strong> con ácido Hialurónico</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-purple-700" />
-                  <span><strong>1x Emulsión Bifásica Hidratante</strong> para rostro, cuello y escote</span>
+                  <span><strong>1x Crema Reestructurante</strong> para rostro, cuello y escote</span>
                 </li>
               </ul>
             </div>

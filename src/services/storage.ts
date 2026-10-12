@@ -118,7 +118,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       percentage: '94%',
       badge: 'Día 14 a 21',
       title: 'Aclarado Visible de Manchas Solares y Tono Parejo',
-      description: 'Gracias a la acción combinada del Bakuchiol y la Rosa Mosqueta de prensado en frío.'
+      description: 'Gracias a la acción combinada del Bakuchiol y el ADN Liposomado.'
     },
     {
       percentage: '96%',
@@ -147,7 +147,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       subtitle: 'Nutrición celular y cuidado específico',
       time: 'Día y Noche · Gotero dosificador',
       image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop',
-      description: 'El corazón de la fórmula: combina Rosa Mosqueta biológica rica en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.',
+      description: 'El corazón de la fórmula: combina ADN Liposomado rico en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.',
       benefits: ['Atenúa manchas y líneas finas', 'Efecto lifting y luminosidad', 'Textura ligera no oleosa']
     },
     {
@@ -187,7 +187,7 @@ export const DEFAULT_CONTENT: StoreContent = {
     {
       problemName: 'Manchas y Tono Desparejo',
       problemDescription: 'Hiperpigmentación por radiación solar, daño oxidativo o marcas residuales que envejecen el rostro.',
-      solutionName: 'Bakuchiol 1% + Rosa Mosqueta',
+      solutionName: 'Bakuchiol 1% + ADN Liposomado',
       solutionDescription: 'Inhibe la melanina y aclara progresivamente.'
     },
     {
@@ -207,7 +207,7 @@ export const DEFAULT_CONTENT: StoreContent = {
       tag: 'Antiedad & Manchas'
     },
     {
-      name: 'Rosa Mosqueta Orgánica',
+      name: 'ADN Liposomado',
       type: 'Prensado en Frío',
       benefit: 'Rica en ácidos grasos esenciales omega 3, 6 y 9. Cicatriza, regenera tejidos dañados y atenúa manchas oscuras.',
       tag: 'Regenerador Celular'
@@ -314,7 +314,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 2 días',
     verified: true,
     title: '¡Adiós a la picazón y tirantez después de años sufriendo!',
-    comment: 'Tengo piel atópica hipersensible, cualquier crema me ardía o me dejaba la cara colorada. Con H2derm el cambio fue desde la primera noche: me levanté sin esa sensación de sequedad insoportable. Y el sérum de rosa mosqueta con bakuchiol me atenuó notablemente dos manchas del sol. Lo pedí y me llegó al día siguiente con pago contraentrega. ¡1000% recomendable!',
+    comment: 'Tengo piel atópica hipersensible, cualquier crema me ardía o me dejaba la cara colorada. Con H2derm el cambio fue desde la primera noche: me levanté sin esa sensación de sequedad insoportable. Y el sérum de ADN Liposomado con bakuchiol me atenuó notablemente dos manchas del sol. Lo pedí y me llegó al día siguiente con pago contraentrega. ¡1000% recomendable!',
     photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop',
     likes: 34
   },
@@ -350,7 +350,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 1 semana',
     verified: true,
     title: 'Como cosmetóloga, la formulación me sorprendió gratamente',
-    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y rosa mosqueta es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
+    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y el ADN Liposomado es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
     photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=600&auto=format&fit=crop',
     likes: 47
   }

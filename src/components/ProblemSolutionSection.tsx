@@ -109,7 +109,7 @@ export const ProblemSolutionSection: React.FC<ProblemSolutionSectionProps> = ({
                   <tr>
                     <td className="py-3 px-3 font-medium">Tratamiento de manchas</td>
                     <td className="py-3 px-3 text-slate-400">Nulo o causa irritación severa</td>
-                    <td className="py-3 px-3 font-bold text-white bg-purple-800/20">Bakuchiol 1% + Rosa Mosqueta</td>
+                    <td className="py-3 px-3 font-bold text-white bg-purple-800/20">Bakuchiol 1% + ADN Liposomado</td>
                   </tr>
                   <tr>
                     <td className="py-3 px-3 font-medium">Alivio de picazón y tirantez</td>

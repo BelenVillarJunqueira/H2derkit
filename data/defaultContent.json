@@ -93,7 +93,7 @@
             "percentage": "94%",
             "badge": "Día 14 a 21",
             "title": "Aclarado Visible de Manchas Solares y Tono Parejo",
-            "description": "Gracias a la acción combinada del Bakuchiol y la Rosa Mosqueta de prensado en frío."
+            "description": "Gracias a la acción combinada del Bakuchiol y los Aminoácidos de ADN Liposomado."
         },
         {
             "percentage": "96%",
@@ -124,7 +124,7 @@
             "subtitle": "Nutrición celular y cuidado específico",
             "time": "Día y Noche · Gotero dosificador",
             "image": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=800&auto=format&fit=crop",
-            "description": "El corazón de la fórmula: combina Rosa Mosqueta biológica rica en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.",
+            "description": "El corazón de la fórmula: combina AND Liposomado rico en omegas y Bakuchiol al 1% (alternativa natural al retinol). Aclara manchas y regenera colágeno.",
             "benefits": [
                 "Atenúa manchas y líneas finas",
                 "Efecto lifting y luminosidad",
@@ -133,7 +133,7 @@
         },
         {
             "number": "03",
-            "title": "Crema Reestructurante Hidratante 24h",
+            "title": "Crema Humectante 24h",
             "subtitle": "Hidratación que dura todo el día",
             "time": "Diariamente tras el sérum",
             "image": "https://images.unsplash.com/photo-1608248597359-00122e232938?q=80&w=800&auto=format&fit=crop",
@@ -146,7 +146,7 @@
         },
         {
             "number": "04",
-            "title": "Emulsión Bifásica Hidratante Rostro & Escote",
+            "title": "Crema reestructurante",
             "subtitle": "El kit que tu cuerpo y piel necesitan",
             "time": "Uso diario y post-ducha",
             "image": "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800&auto=format&fit=crop",
@@ -174,7 +174,7 @@
         {
             "problemName": "Manchas y Tono Desparejo",
             "problemDescription": "Hiperpigmentación por radiación solar, daño oxidativo o marcas residuales que envejecen el rostro.",
-            "solutionName": "Bakuchiol 1% + Rosa Mosqueta",
+            "solutionName": "Bakuchiol 1% + Niacinamida 5%",
             "solutionDescription": "Inhibe la melanina y aclara progresivamente."
         },
         {
@@ -192,13 +192,13 @@
             "tag": "Antiedad & Manchas"
         },
         {
-            "name": "Rosa Mosqueta Orgánica",
+            "name": "ADN Liposomado",
             "type": "Prensado en Frío",
             "benefit": "Rica en ácidos grasos esenciales omega 3, 6 y 9. Cicatriza, regenera tejidos dañados y atenúa manchas oscuras.",
             "tag": "Regenerador Celular"
         },
         {
-            "name": "Ácido Hialurónico Triple",
+            "name": "Ácido Hialurónico ",
             "type": "Bajo, Medio y Alto Peso Molecular",
             "benefit": "Hidrata desde la superficie hasta las capas dérmicas más profundas, rellenando líneas de expresión y sequedad.",
             "tag": "Hidratación 24H"

@@ -1187,7 +1187,7 @@ export const recordOrderAnalytics = (amount: number): void => {
 };
 
 export const getAdminPin = (): string => {
-  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || 'admin123';
+  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '2222';
 };
 
 export const setAdminPin = (newPin: string): void => {

@@ -67,7 +67,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const currentPin = getAdminPin();
-    if (pinInput === currentPin || pinInput === 'admin123') {
+    if (pinInput === currentPin || pinInput === '2222') {
       setIsAuthenticated(true);
       setPinError(false);
     } else {
@@ -181,12 +181,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     setPinInput(e.target.value);
                     setPinError(false);
                   }}
-                  placeholder="PIN o Clave (por defecto: admin123)"
+                  placeholder="Ingrese su clave"
                   className="w-full text-center text-lg tracking-widest p-3.5 bg-slate-50 rounded-2xl border border-slate-300 font-mono font-bold focus:ring-2 focus:ring-purple-700 outline-none"
                 />
                 {pinError && (
                   <span className="text-xs font-bold text-rose-600 block mt-1.5">
-                    Clave incorrecta. Recuerda que por defecto es: admin123
+                    Clave incorrecta.
                   </span>
                 )}
               </div>
@@ -199,9 +199,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
             </form>
 
-            <div className="pt-2 text-[11px] text-slate-400">
-              💡 Clave inicial de fábrica: <strong className="text-purple-700 font-mono">admin123</strong>
-            </div>
           </div>
         </div>
       ) : (

@@ -1,0 +1,27 @@
+{
+  "mercadoPago": {
+    "enabled": true,
+    "publicKey": "APP_USR-8b716e3d-2608-4ef1-a5c0-223297d541c0",
+    "accessToken": "APP_USR-4889388160023438-092215-8caa90f8fb3a9efbf131d878cc578ac4-31478951",
+    "mode": "production",
+    "maxInstallments": 6,
+    "offerCuotasSinInteres": true
+  },
+  "contraentrega": {
+    "enabled": true,
+    "title": "Pago Contraentrega (Pagar al Recibir)",
+    "description": "Pagas en efectivo o con débito en mano al repartidor cuando te entrega el paquete en tu puerta. 0% riesgo.",
+    "extraFee": 0
+  },
+  "transferencia": {
+    "enabled": true,
+    "bankName": "Banco Galiciar / Brubank",
+    "accountHolder": "Belen Villar junqueira",
+    "cbu": "0720194888000039201948",
+    "cvu": "0070327530004092450465",
+    "alias": "RBVILLAR3.GAL",
+    "cuit": "23/37066549/4",
+    "extraDiscountPercent": 10,
+    "instructions": "Una vez hecha la transferencia bancaria o por Mercado Pago a nuestro Alias, adjunta tu comprobante o envíalo por WhatsApp con tu número de pedido."
+  }
+}

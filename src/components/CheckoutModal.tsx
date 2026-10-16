@@ -948,7 +948,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
             <div className="text-center text-[11px] text-slate-500 flex items-center justify-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Transacción 100% Encriptada · Garantía Oficial H2derm 30 Días</span>
+              <span>Transacción 100% Encriptada · Garantía Oficial H2derm 10 Días</span>
             </div>
 
           </form>

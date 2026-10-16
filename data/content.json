@@ -63,9 +63,9 @@
       ]
     }
   ],
-  "guaranteeDays": 30,
-  "guaranteeTitle": "Garantía Incondicional de 30 Días",
-  "guaranteeText": "Si tras usar el kit durante 30 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.",
+  "guaranteeDays": 10,
+  "guaranteeTitle": "Garantía Incondicional de 10 Días",
+  "guaranteeText": "Si tras usar el kit durante 10 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.",
   "shippingPromise": "Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CABA y GBA.",
   "problemTitle": "¿Tu piel se siente tirante, apagada, con picazón o manchas?",
   "problemSubtitle": "El 89% de las cremas convencionales solo hidratan la capa exterior temporalmente, evaporándose en pocas horas y dejando la barrera cutánea rota.",

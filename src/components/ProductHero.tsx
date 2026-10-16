@@ -146,7 +146,7 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
                 <span>·</span>
                 <span className="flex items-center gap-1 font-medium">
                   <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-                  30 Días Garantía
+                  10 Días Garantía
                 </span>
               </div>
             </div>

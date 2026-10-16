@@ -19,7 +19,7 @@ export const GuaranteeBanner: React.FC<GuaranteeBannerProps> = ({
           {/* Gold Shield Icon */}
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 flex flex-col items-center justify-center shrink-0 shadow-xl border-4 border-white rotate-1 hover:rotate-0 transition-transform">
             <RotateCcw className="w-10 h-10 text-slate-950 stroke-[2.5]" />
-            <span className="font-black text-xs uppercase tracking-tighter mt-1">30 DÍAS</span>
+            <span className="font-black text-xs uppercase tracking-tighter mt-1">10 DÍAS</span>
           </div>
 
           {/* Text & Button */}

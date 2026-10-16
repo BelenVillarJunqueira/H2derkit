@@ -40,10 +40,10 @@ export const DEFAULT_CONTENT: StoreContent = {
       title: '1x KIT ROSTRO H2derm',
       subtitle: 'Tratamiento Inicial (1 Mes de Renovación)',
       quantity: 1,
-      originalPrice: 59900,
-      salePrice: 38900,
-      discountPercentage: 35,
-      savings: 21000,
+      originalPrice: 56334,
+      salePrice: 56334,
+      discountPercentage: 0,
+      savings: 0,
       features: [
         'Los 4 productos completos originales',
         'Envío GRATIS a domicilio asegurado',
@@ -57,16 +57,15 @@ export const DEFAULT_CONTENT: StoreContent = {
       badge: 'MÁS VENDIDO · 48% OFF',
       isPopular: true,
       quantity: 2,
-      originalPrice: 119800,
-      salePrice: 62200,
-      discountPercentage: 48,
-      savings: 57600,
-      freeGift: '🎁 REGALO: Neceser Térmico Edición Limitada ($15.000 valor)',
+      originalPrice: 112668,
+      salePrice: 101400,
+      discountPercentage: 10,
+      savings: 11268,
+      freeGift: '...',
       features: [
         '2 Cajas completas (8 productos en total)',
-        'Neceser Térmico de lujo sin cargo',
         'Envío Prioritario Express en 24/48hs',
-        'Garantía de Satisfacción Total 30 Días'
+        'Garantía de Satisfacción Total 10 Días'
       ]
     },
     {
@@ -75,23 +74,22 @@ export const DEFAULT_CONTENT: StoreContent = {
       subtitle: 'Máximo Ahorro Familiar o Tratamiento Anual Continuo',
       badge: 'MEJOR AHORRO · 58% OFF',
       quantity: 3,
-      originalPrice: 179700,
-      salePrice: 75400,
-      discountPercentage: 58,
-      savings: 104300,
-      freeGift: '🎁 REGALO: Rodillo Facial Cuarzo Rosa + Neceser de Lujo',
+      originalPrice: 169002,
+      salePrice: 143650,
+      discountPercentage: 15,
+      savings: 25352,
+      freeGift: '...',
       features: [
         '3 Cajas completas (12 productos en total)',
-        'Set Doble de Regalos Exclusivos',
         'Despacho y Envío VIP Prioritario',
         'Garantía Extendida & Soporte Dermocosmético'
       ]
     }
   ],
 
-  guaranteeDays: 30,
-  guaranteeTitle: 'Garantía Incondicional de 30 Días',
-  guaranteeText: 'Si tras usar el kit durante 30 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.',
+  guaranteeDays: 10,
+  guaranteeTitle: 'Garantía Incondicional de 10 Días',
+  guaranteeText: 'Si tras usar el kit durante 10 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.',
   shippingPromise: 'Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CABA y GBA.',
 
   problemTitle: '¿Tu piel se siente tirante, apagada, con picazón o manchas?',

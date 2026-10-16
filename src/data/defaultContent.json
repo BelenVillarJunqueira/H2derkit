@@ -20,7 +20,7 @@
       "quantity": 1,
       "originalPrice": 56334,
       "salePrice": 56334,
-      "discountPercentage": 35,
+      "discountPercentage": 0,
       "savings": 0,
       "features": [
         "Los 4 productos completos originales",
@@ -36,7 +36,7 @@
       "quantity": 2,
       "originalPrice": 112668,
       "salePrice": 101400,
-      "discountPercentage": 48,
+      "discountPercentage": 10,
       "savings": 11268,
       "freeGift": "",
       "features": [
@@ -53,8 +53,8 @@
       "quantity": 3,
       "originalPrice": 169.002,
       "salePrice": 143.65,
-      "discountPercentage": 58,
-      "savings": 25.352000000000004,
+      "discountPercentage": 15,
+      "savings": 25.352,
       "freeGift": "",
       "features": [
         "3 Cajas completas (12 productos en total)",
@@ -63,9 +63,9 @@
       ]
     }
   ],
-  "guaranteeDays": 30,
-  "guaranteeTitle": "Garantía Incondicional de 30 Días",
-  "guaranteeText": "Si tras usar el kit durante 30 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.",
+  "guaranteeDays": 10,
+  "guaranteeTitle": "Garantía Incondicional de 10 Días",
+  "guaranteeText": "Si tras usar el kit durante 10 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.",
   "shippingPromise": "Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CABA y GBA.",
   "problemTitle": "¿Tu piel se siente tirante, apagada, con picazón o manchas?",
   "problemSubtitle": "El 89% de las cremas convencionales solo hidratan la capa exterior temporalmente, evaporándose en pocas horas y dejando la barrera cutánea rota.",

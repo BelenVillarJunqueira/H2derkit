@@ -27,7 +27,7 @@ export const FaqSection: React.FC = () => {
     },
     {
       q: '¿Qué garantía tengo si el producto no cumple mis expectativas?',
-      a: 'Ofrecemos nuestra Garantía de Satisfacción Total de 30 Días. Si dentro de los 30 días de recibir tu kit consideras que tu piel no mejoró como esperabas, nos escribes por WhatsApp o email y gestionamos la devolución del 100% de tu dinero.'
+      a: 'Ofrecemos nuestra Garantía de Satisfacción Total de 10 Días. Si dentro de los 10 días de recibir tu kit consideras que tu piel no mejoró como esperabas, nos escribes por WhatsApp o email y gestionamos la devolución del 100% de tu dinero.'
     }
   ];
 

@@ -119,7 +119,7 @@ export const ProblemSolutionSection: React.FC<ProblemSolutionSectionProps> = ({
                   <tr>
                     <td className="py-3 px-3 font-medium">Garantía de reembolso</td>
                     <td className="py-3 px-3 text-slate-400">Sin garantía si el envase fue abierto</td>
-                    <td className="py-3 px-3 font-bold text-amber-300 bg-purple-800/20">30 Días 100% Sin Riesgo</td>
+                    <td className="py-3 px-3 font-bold text-amber-300 bg-purple-800/20">10 Días 100% Sin Riesgo</td>
                   </tr>
                 </tbody>
               </table>

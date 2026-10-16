@@ -78,14 +78,17 @@ export default function App() {
     }
 
     // 1. Load persistent media and content from local IndexedDB first for instant rendering
+    let serverMediaReceived = false;
+    let serverContentReceived = false;
+
     getMediaFromIndexedDB().then((indexedMedia) => {
-      if (indexedMedia && Array.isArray(indexedMedia) && indexedMedia.length > 0) {
+      if (!serverMediaReceived && indexedMedia && Array.isArray(indexedMedia) && indexedMedia.length > 0) {
         setMedia(indexedMedia);
       }
     });
 
     getContentFromIndexedDB().then((indexedContent) => {
-      if (indexedContent) {
+      if (!serverContentReceived && indexedContent) {
         const localContent = getStoreContent();
         const indexedTime = (indexedContent as any).updatedAt || 0;
         const localTime = (localContent as any).updatedAt || 0;
@@ -95,13 +98,19 @@ export default function App() {
       }
     });
 
-    // 2. Fetch authoritative stored content & media from server & MongoDB Atlas
+    // 2. Fetch authoritative stored content & media from server & MongoDB Atlas (with cache busting)
     fetchServerContent().then((serverContent) => {
-      if (serverContent) setContent(serverContent);
+      if (serverContent) {
+        serverContentReceived = true;
+        setContent(serverContent);
+      }
     });
 
     fetchServerMedia().then((serverMedia) => {
-      if (serverMedia) setMedia(serverMedia);
+      if (serverMedia) {
+        serverMediaReceived = true;
+        setMedia(serverMedia);
+      }
     });
 
     fetchServerGateways();

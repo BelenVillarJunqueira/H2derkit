@@ -50,7 +50,7 @@ export const Footer: React.FC<FooterProps> = ({
             <ul className="space-y-2 text-xs text-slate-400 font-medium">
               <li>
                 <a href="#producto-oferta" className="hover:text-white transition-colors">
-                  Kit Rostro H2derm (Oferta 50% OFF)
+                  Kit Rostro H2derm (Oferta 15% OFF)
                 </a>
               </li>
               <li>

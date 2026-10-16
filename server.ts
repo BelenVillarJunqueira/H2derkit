@@ -174,11 +174,17 @@ app.get('/uploads/:filename', async (req, res) => {
       const doc = await ImageModel.findOne({ id: filename });
       if (doc && doc.data) {
         const buffer = Buffer.from(doc.data, 'base64');
-        try { fs.writeFileSync(filePath, buffer); } catch (_) {}
-        res.setHeader('Content-Type', doc.contentType || mimeType);
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        return res.send(buffer);
+        try {
+          fs.writeFileSync(filePath, buffer);
+          res.setHeader('Content-Type', doc.contentType || mimeType);
+          res.setHeader('Accept-Ranges', 'bytes');
+          return res.sendFile(filePath);
+        } catch (_) {
+          res.setHeader('Content-Type', doc.contentType || mimeType);
+          res.setHeader('Accept-Ranges', 'bytes');
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          return res.send(buffer);
+        }
       }
     } catch (err) {
       console.error('Error recovering file from Mongo:', err);
@@ -290,6 +296,7 @@ const contentFile = path.join(dataDir, 'content.json');
 const defaultContentFile = path.resolve(__dirname, 'src', 'data', 'defaultContent.json');
 
 app.get('/api/store/content', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   try {
     if (isMongoConnected()) {
       const doc = await StoreConfigModel.findOne({ key: 'content' });
@@ -340,6 +347,7 @@ const mediaFile = path.join(dataDir, 'media.json');
 const defaultMediaFile = path.resolve(__dirname, 'src', 'data', 'defaultMedia.json');
 
 app.get('/api/store/media', async (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   try {
     if (isMongoConnected()) {
       const doc = await StoreConfigModel.findOne({ key: 'media' });
@@ -360,6 +368,53 @@ app.get('/api/store/media', async (_req, res) => {
     if (media) return res.json(media);
   }
   res.status(404).json({ error: 'No custom media saved yet' });
+});
+
+// Endpoint to force synchronization of code defaults (defaultContent.json & defaultMedia.json) into MongoDB Atlas
+app.post('/api/store/sync-code-to-mongo', async (_req, res) => {
+  try {
+    let syncedContent = null;
+    let syncedMedia = null;
+
+    if (fs.existsSync(defaultContentFile)) {
+      syncedContent = readJsonFile(defaultContentFile, null);
+      if (syncedContent) {
+        writeJsonFile(contentFile, syncedContent);
+        if (isMongoConnected()) {
+          await StoreConfigModel.findOneAndUpdate(
+            { key: 'content' },
+            { key: 'content', data: syncedContent, updatedAt: new Date() },
+            { upsert: true }
+          );
+        }
+      }
+    }
+
+    if (fs.existsSync(defaultMediaFile)) {
+      syncedMedia = readJsonFile(defaultMediaFile, null);
+      if (syncedMedia) {
+        writeJsonFile(mediaFile, syncedMedia);
+        if (isMongoConnected()) {
+          await StoreConfigModel.findOneAndUpdate(
+            { key: 'media' },
+            { key: 'media', data: syncedMedia, updatedAt: new Date() },
+            { upsert: true }
+          );
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: '¡Datos y precios del código sincronizados exitosamente con MongoDB Atlas y el servidor!',
+      content: syncedContent,
+      media: syncedMedia,
+      mongo: isMongoConnected()
+    });
+  } catch (err: any) {
+    console.error('Error syncing code to mongo:', err);
+    res.status(500).json({ error: 'Error al sincronizar datos del código', details: err.message });
+  }
 });
 
 app.post('/api/store/media', async (req, res) => {
@@ -566,6 +621,18 @@ app.post('/api/store/reviews', async (req, res) => {
 });
 
 // MERCADO PAGO: Checkout Pro Preference Endpoint
+export interface MercadoPagoGatewayConfig {
+  enabled?: boolean;
+  publicKey?: string;
+  accessToken?: string;
+  mode?: string;
+  maxInstallments?: number;
+  offerCuotasSinInteres?: boolean;
+  directPaymentLink?: string;
+  packLinks?: Record<string, string>;
+  [key: string]: any;
+}
+
 app.post('/api/mercadopago/create-preference', async (req, res) => {
   try {
     const { items, payer, orderId, backUrls, autoReturn, packId } = req.body;
@@ -580,7 +647,9 @@ app.post('/api/mercadopago/create-preference', async (req, res) => {
       }
     });
 
-    const mpConfig: any = gateways?.mercadoPago || {};
+    const mpConfig: MercadoPagoGatewayConfig = (gateways && typeof gateways === 'object' && gateways.mercadoPago)
+      ? gateways.mercadoPago
+      : {};
 
     if (packId && mpConfig.packLinks && mpConfig.packLinks[packId]) {
       const directUrl = mpConfig.packLinks[packId];

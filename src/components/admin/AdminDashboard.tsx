@@ -19,7 +19,8 @@ import {
   RefreshCw,
   AlertCircle,
   Database,
-  Check
+  Check,
+  Tag
 } from 'lucide-react';
 import { OrdersManager } from './OrdersManager';
 import { ContentEditor } from './ContentEditor';
@@ -31,6 +32,7 @@ import {
   getAdminPin, 
   setAdminPin,
   syncAllToServer,
+  syncCodeDefaultsToMongo,
   checkMongoStatus,
   retryMongoConnection,
   getStoreContent,
@@ -53,7 +55,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [activeTab, setActiveTab] = useState<'orders' | 'beforeAfter' | 'media' | 'content' | 'payments' | 'analytics'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'packs' | 'beforeAfter' | 'media' | 'content' | 'payments' | 'analytics'>('orders');
 
   // New PIN modal
   const [showChangePin, setShowChangePin] = useState(false);
@@ -62,6 +64,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Sync to Render state
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingCode, setIsSyncingCode] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [syncSuccess, setSyncSuccess] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +132,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => {
       setSyncMessage('');
     }, 4500);
+  };
+
+  const handleSyncCodeToMongo = async () => {
+    if (!confirm('¿Deseas sobreescribir la base de datos con los precios y textos que están en los archivos de tu código (defaultContent.json)?')) {
+      return;
+    }
+    setIsSyncingCode(true);
+    setSyncMessage('');
+    const res = await syncCodeDefaultsToMongo();
+    setIsSyncingCode(false);
+    setSyncSuccess(res.success);
+    setSyncMessage(res.message);
+    checkMongoStatus().then(setMongoStatus);
+    setTimeout(() => {
+      setSyncMessage('');
+    }, 5000);
   };
 
   const handleDownloadBackup = () => {
@@ -212,12 +231,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     setPinInput(e.target.value);
                     setPinError(false);
                   }}
-                  placeholder="Ingresa tu clave "
+                  placeholder="Ingresa tu clave"
                   className="w-full text-center text-lg tracking-widest p-3.5 bg-slate-50 rounded-2xl border border-slate-300 font-mono font-bold focus:ring-2 focus:ring-purple-700 outline-none"
                 />
                 {pinError && (
                   <span className="text-xs font-bold text-rose-600 block mt-1.5">
-                    Clave incorrecta. Intenta nuevamente.
+                    Clave incorrecta.
                   </span>
                 )}
               </div>
@@ -229,7 +248,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Ingresar al Panel
               </button>
             </form>
-
           </div>
         </div>
       ) : (
@@ -295,6 +313,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <Cloud className="w-3.5 h-3.5" />
                 )}
                 <span>{isSyncing ? 'Guardando...' : 'Guardar en Render'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSyncCodeToMongo}
+                disabled={isSyncingCode}
+                className="bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-300 shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                title="Fuerza los precios y textos de los archivos del código (defaultContent.json) directo a la base de datos MongoDB Atlas"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-amber-800 ${isSyncingCode ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncingCode ? 'Sincronizando...' : 'Cargar Precios de Código'}</span>
+                <span className="sm:hidden">Código a DB</span>
               </button>
 
               <button
@@ -374,6 +404,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
 
               <button
+                onClick={() => setActiveTab('packs')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'packs'
+                    ? 'bg-purple-900 text-white shadow-sm'
+                    : 'text-purple-950 hover:bg-purple-100 bg-amber-50/80 font-black border border-amber-300'
+                }`}
+              >
+                <Tag className="w-4 h-4 text-amber-600" />
+                <span>🏷️ Precios & Packs (Kits)</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('beforeAfter')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'beforeAfter'
@@ -438,9 +480,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* Main Workspace Body */}
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
             {activeTab === 'orders' && <OrdersManager />}
+            {activeTab === 'packs' && <ContentEditor key="packs-tab" initialSection="packs" />}
             {activeTab === 'beforeAfter' && <BeforeAfterManager />}
             {activeTab === 'media' && <MediaManager />}
-            {activeTab === 'content' && <ContentEditor />}
+            {activeTab === 'content' && <ContentEditor key="content-tab" initialSection="routine" />}
             {activeTab === 'payments' && <PaymentGatewaysConfig />}
             {activeTab === 'analytics' && <AnalyticsPanel />}
           </main>

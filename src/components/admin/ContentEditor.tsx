@@ -757,13 +757,32 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
       {/* 3. SECCIÓN: PRECIOS, PACKS Y PRODUCTO HERO */}
       {activeSection === 'packs' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-          <div className="border-b border-slate-100 pb-4">
-            <h4 className="font-extrabold text-base text-purple-900 uppercase tracking-wider flex items-center gap-2">
-              <span>🏷️ Precios, Packs y Ofertas de Volumen</span>
-            </h4>
-            <p className="text-xs text-slate-500 mt-1">
-              Modifica los precios de 1, 2 y 3 kits, precios tachados, regalos sorpresa y títulos.
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <h4 className="font-extrabold text-base text-purple-900 uppercase tracking-wider flex items-center gap-2">
+                <span>🏷️ Precios, Packs y Ofertas de Volumen</span>
+              </h4>
+              <p className="text-xs text-slate-500 mt-1">
+                Modifica los precios de 1, 2 y 3 kits, precios tachados, regalos sorpresa y títulos.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSave()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            >
+              {savedSuccess ? (
+                <>
+                  <Check className="w-4 h-4 text-white stroke-[3]" />
+                  <span>¡Precios Guardados en DB!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 text-white" />
+                  <span>Guardar Precios en la Tienda</span>
+                </>
+              )}
+            </button>
           </div>
 
           <div className="space-y-4 text-xs">
@@ -1053,6 +1072,27 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ initialSection = '
                 </div>
               );
             })}
+          </div>
+
+          {/* Bottom Save Action for Packs */}
+          <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <button
+              type="button"
+              onClick={() => handleSave()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm px-6 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            >
+              {savedSuccess ? (
+                <>
+                  <Check className="w-5 h-5 text-white stroke-[3]" />
+                  <span>¡Precios Guardados en la Tienda!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5 text-white" />
+                  <span>Guardar Precios de Packs en Base de Datos</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
@@ -1442,3 +1482,4 @@ export const BeforeAfterManager: React.FC = () => {
 };
 
 export default ContentEditor;
+

@@ -40,29 +40,31 @@ export const DEFAULT_CONTENT: StoreContent = {
       title: '1x KIT ROSTRO H2derm',
       subtitle: 'Tratamiento Inicial (1 Mes de Renovación)',
       quantity: 1,
-      originalPrice: 56.334,
-      salePrice: 56.334,
-      discountPercentage: 0,
-      savings: 0,
+      originalPrice: 59900,
+      salePrice: 38900,
+      discountPercentage: 35,
+      savings: 21000,
       features: [
         'Los 4 productos completos originales',
         'Envío GRATIS a domicilio asegurado',
+        'Guía clínica de aplicación paso a paso'
       ]
     },
     {
       id: 'pack-2',
       title: '2x KITS ROSTRO H2derm',
       subtitle: 'Tratamiento Intensivo (2 Meses) o Para Compartir',
-      badge: 'MÁS VENDIDO · 15% OFF',
+      badge: 'MÁS VENDIDO · 48% OFF',
       isPopular: true,
       quantity: 2,
-      originalPrice: 112668,
-      salePrice: 101400,
-      discountPercentage: 10,
-      savings: 11268,
-      freeGift: '..',
+      originalPrice: 119800,
+      salePrice: 62200,
+      discountPercentage: 48,
+      savings: 57600,
+      freeGift: '🎁 REGALO: Neceser Térmico Edición Limitada ($15.000 valor)',
       features: [
         '2 Cajas completas (8 productos en total)',
+        'Neceser Térmico de lujo sin cargo',
         'Envío Prioritario Express en 24/48hs',
         'Garantía de Satisfacción Total 30 Días'
       ]
@@ -73,23 +75,24 @@ export const DEFAULT_CONTENT: StoreContent = {
       subtitle: 'Máximo Ahorro Familiar o Tratamiento Anual Continuo',
       badge: 'MEJOR AHORRO · 58% OFF',
       quantity: 3,
-      originalPrice: 169002,
-      salePrice: 143650,
-      discountPercentage: 15,
-      savings: 25352,
-      freeGift: '...',
+      originalPrice: 179700,
+      salePrice: 75400,
+      discountPercentage: 58,
+      savings: 104300,
+      freeGift: '🎁 REGALO: Rodillo Facial Cuarzo Rosa + Neceser de Lujo',
       features: [
         '3 Cajas completas (12 productos en total)',
+        'Set Doble de Regalos Exclusivos',
         'Despacho y Envío VIP Prioritario',
         'Garantía Extendida & Soporte Dermocosmético'
       ]
     }
   ],
 
-  guaranteeDays: 10,
-  guaranteeTitle: 'Garantía Incondicional de 10 Días',
-  guaranteeText: 'Si tras usar el kit durante 10 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.',
-  shippingPromise: 'Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CBA.',
+  guaranteeDays: 30,
+  guaranteeTitle: 'Garantía Incondicional de 30 Días',
+  guaranteeText: 'Si tras usar el kit durante 30 días no notas tu piel visiblemente más hidratada, luminosa y sin picazón o tirantez, te reembolsamos el 100% de tu dinero sin preguntas ni complicaciones.',
+  shippingPromise: 'Envíos a todo el país vía Correo Argentino / Andreani / Envío Express en el día en CABA y GBA.',
 
   problemTitle: '¿Tu piel se siente tirante, apagada, con picazón o manchas?',
   problemSubtitle: 'El 89% de las cremas convencionales solo hidratan la capa exterior temporalmente, evaporándose en pocas horas y dejando la barrera cutánea rota.',
@@ -323,7 +326,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 4 días',
     verified: true,
     title: 'Increíble luminosidad, parece que me hice un tratamiento láser',
-    comment: 'Compré la promo de 2 kits para regalarle uno a mi mamá. A las dos nos encantó. La espuma de limpieza te deja la piel como seda de bebé, y la crema hidratante dura todo el día sin dejar brillo grasoso. Hasta mi marido notó que tenía la cara más fresca y descansada.',
+    comment: 'Compré la promo de 2 kits para regalarle uno a mi mamá. A las dos nos encantó. La crema exfoliante no raspa para nada pero te deja la piel como seda de bebé, y la crema hidratante dura todo el día sin dejar brillo grasoso. Hasta mi marido notó que tenía la cara más fresca y descansada.',
     photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
     likes: 28
   },
@@ -347,7 +350,7 @@ export const DEFAULT_REVIEWS: ReviewItem[] = [
     date: 'Hace 1 semana',
     verified: true,
     title: 'Como cosmetóloga, la formulación me sorprendió gratamente',
-    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y el ADN liposomadoa es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
+    comment: 'El uso de Bakuchiol al 1% combinado con ácido hialurónico y rosa mosqueta es la combinación perfecta para pacientes que no toleran el retinol puro por irritación. Mis clientas ya lo están adoptando.',
     photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=600&auto=format&fit=crop',
     likes: 47
   }
@@ -372,12 +375,12 @@ export const DEFAULT_GATEWAYS: PaymentGatewaysSettings = {
   },
   transferencia: {
     enabled: true,
-    bankName: 'Banco Galicia',
-    accountHolder: 'H2DERM DERMOCOSMETICA ',
-    cbu: '0070327530004092450465',
-    cvu: '0000003100108191210230',
-    alias: 'rbvillar3.gal',
-    cuit: '23-37066549-',
+    bankName: 'Banco Santander / Brubank',
+    accountHolder: 'H2DERM DERMOCOSMETICA S.R.L.',
+    cbu: '0720194888000039201948',
+    cvu: '0000003100092837461920',
+    alias: 'H2DERM.OFICIAL.PAGOS',
+    cuit: '30-71649201-9',
     extraDiscountPercent: 10,
     instructions: 'Una vez hecha la transferencia bancaria o por Mercado Pago a nuestro Alias, adjunta tu comprobante o envíalo por WhatsApp con tu número de pedido.'
   }
@@ -401,9 +404,9 @@ export const DEFAULT_ORDERS: OrderItem[] = [
     packId: 'pack-2',
     packTitle: '2x KITS ROSTRO H2derm (Más Vendido)',
     quantity: 1,
-    unitPrice: 101400,
-    totalPrice: 101400,
-    discountApplied: 15,
+    unitPrice: 62200,
+    totalPrice: 62200,
+    discountApplied: 57600,
     paymentMethod: 'mercadopago',
     paymentStatus: 'paid',
     shippingStatus: 'in_transit',
@@ -458,9 +461,9 @@ export const DEFAULT_ORDERS: OrderItem[] = [
     packId: 'pack-3',
     packTitle: '3x KITS ROSTRO H2derm (Mejor Ahorro)',
     quantity: 1,
-    unitPrice: 143650,
-    totalPrice: 143650, // With 10% transfer discount
-    discountApplied: 25952,
+    unitPrice: 75400,
+    totalPrice: 67860, // With 10% transfer discount
+    discountApplied: 104300,
     paymentMethod: 'transferencia',
     paymentStatus: 'paid',
     shippingStatus: 'shipped',
@@ -503,9 +506,9 @@ export const DEFAULT_ORDERS: OrderItem[] = [
     packId: 'pack-1',
     packTitle: '1x KIT ROSTRO H2derm',
     quantity: 1,
-    unitPrice: 56334,
-    totalPrice: 56334,
-    discountApplied: 0,
+    unitPrice: 38900,
+    totalPrice: 38900,
+    discountApplied: 21000,
     paymentMethod: 'contraentrega',
     paymentStatus: 'pending',
     shippingStatus: 'preparing',
@@ -692,7 +695,10 @@ export const saveStoreContent = (content: StoreContent): void => {
 // Fetch latest content from server (Render deployment / shared users)
 export const fetchServerContent = async (): Promise<StoreContent | null> => {
   try {
-    const res = await fetch('/api/store/content');
+    const res = await fetch(`/api/store/content?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (res.ok) {
       const serverContent = await res.json();
       if (serverContent && serverContent.brandName) {
@@ -709,7 +715,10 @@ export const fetchServerContent = async (): Promise<StoreContent | null> => {
 // Fetch latest media from server (Render deployment / shared users)
 export const fetchServerMedia = async (): Promise<MediaItem[] | null> => {
   try {
-    const res = await fetch('/api/store/media');
+    const res = await fetch(`/api/store/media?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (res.ok) {
       const serverMedia = await res.json();
       if (Array.isArray(serverMedia) && serverMedia.length > 0) {
@@ -726,7 +735,10 @@ export const fetchServerMedia = async (): Promise<MediaItem[] | null> => {
 // Fetch latest payment gateways from server
 export const fetchServerGateways = async (): Promise<PaymentGatewaysSettings | null> => {
   try {
-    const res = await fetch('/api/store/gateways');
+    const res = await fetch(`/api/store/gateways?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
     if (res.ok) {
       const serverGateways = await res.json();
       if (serverGateways && serverGateways.mercadoPago) {
@@ -737,6 +749,33 @@ export const fetchServerGateways = async (): Promise<PaymentGatewaysSettings | n
     }
   } catch {}
   return null;
+};
+
+// Force synchronizing default code values (defaultContent.json & defaultMedia.json) into MongoDB Atlas
+export const syncCodeDefaultsToMongo = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    const res = await fetch('/api/store/sync-code-to-mongo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (data.content) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(data.content));
+        saveContentToIndexedDB(data.content);
+        window.dispatchEvent(new CustomEvent('h2derm_content_updated', { detail: data.content }));
+      }
+      if (data.media) {
+        localStorage.setItem(STORAGE_KEYS.MEDIA, JSON.stringify(data.media));
+        saveMediaToIndexedDB(data.media);
+        window.dispatchEvent(new CustomEvent('h2derm_media_updated', { detail: data.media }));
+      }
+      return { success: true, message: data.message || '¡Datos de código sincronizados con MongoDB Atlas!' };
+    }
+    return { success: false, message: data.error || 'Error al sincronizar con MongoDB' };
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Error de conexión con el servidor' };
+  }
 };
 
 // Cart State Persistence
@@ -1232,7 +1271,7 @@ export const recordOrderAnalytics = (amount: number): void => {
 };
 
 export const getAdminPin = (): string => {
-  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || 'admin123';
+  return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '2222';
 };
 
 export const setAdminPin = (newPin: string): void => {
